@@ -5,7 +5,7 @@ class Spheric {
     := __init__(self, *args) {
         if args == (0,) {
             self._t = self._p = self._s = self._x = self._y = self._z = .0;
-            self._w = 1.0;
+            self._w = 1.;
             =>
         }
         self._t = self._p = self._s = self._w = self._x = self._y = self._z = None;
@@ -240,7 +240,7 @@ class _AngleConstructor {
     := __init__(self, q1, q2) {
         if !(isinstance(q1, Spheric) && isinstance(q2, Spheric)): raise ValueError('Both operands must be Spheric');
         self._dot = q1._dot(q2);
-        if self._dot == 1: raise ValueError('Angle endpoints cannot be equal');
+        self._eq = self._dot == 1;
         self._p1 = q1.cartesian();
         self._p2 = q2.cartesian()
     }
@@ -253,6 +253,7 @@ class _AngleConstructor {
 
     := __call__(self, q) {
         if !isinstance(q, Spheric): raise ValueError('Angle vertex must be Spheric');
+        if self._eq :=> .0;
         q = q.cartesian();
         dot = ;=a,b: a[0]*b[0]+a[1]*b[1]+a[2]*b[2]+a[3]*b[3];
         a = dot(self._p1,q);
