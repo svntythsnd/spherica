@@ -150,7 +150,7 @@ class Spheric {
 
     := __or__(self, other) {
         if !isinstance(other, Spheric): raise ValueError('Both operands must be Spheric');
-        => _math.acos(max(min(self.w*other.w+self.x*other.x+self.y*other.y+self.z*other.z,1.0),-1.0))
+        => _math.acos(self._dot(other))
     }
 
     := __matmul__(self, fov) {
@@ -186,9 +186,11 @@ class Spheric {
         } else :=> Spheric(self.theta * k,self.phi,self.psi)
     }
 
+    := _dot(self, other) :=> max(min(self.w*other.w+self.x*other.x+self.y*other.y+self.z*other.z,1),-1);
+
     := __abs__(self) :=> self.theta;
 
-    := __eq__(self, other) :=> abs((self - other).w-1) < 0.1;
+    := __eq__(self, other) :=> self._dot(other) == 1;
 
     := __rshift__(self, other) :=> _SphericInterpolator(self, other);
 
@@ -237,6 +239,8 @@ class _SphericInterpolator {
 class _AngleConstructor {
     := __init__(self, q1, q2) {
         if !(isinstance(q1, Spheric) && isinstance(q2, Spheric)): raise ValueError('Both operands must be Spheric');
+        self._dot = q1._dot(q2);
+        if self._dot == 1: raise ValueError('Angle endpoints cannot be equal');
         self._p1 = q1.cartesian();
         self._p2 = q2.cartesian()
     }
@@ -253,10 +257,11 @@ class _AngleConstructor {
         dot = ;=a,b: a[0]*b[0]+a[1]*b[1]+a[2]*b[2]+a[3]*b[3];
         a = dot(self._p1,q);
         b = dot(self._p2,q);
-        c = dot(self._p1,self._p2);
         sa = _math.sqrt(1-a**2);
         sb = _math.sqrt(1-b**2);
-        => _math.acos(max(min((c-a*b)/(sa*sb),1),-1))
+        S = sa*sb;
+        if S == 0: raise ValueError('Angle vertex cannot be equal to endpoint');
+        => _math.acos(max(min((self._dot-a*b)/S,1),-1))
     }
 
     := __repr__(self) :=> f'AngleConstructor[

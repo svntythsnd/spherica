@@ -101,7 +101,7 @@ class Spheric:
   return self + (-other)
  def __or__(self, other):
   if not isinstance(other, Spheric): raise ValueError('Both operands must be Spheric')
-  return _math.acos(max(min(self.w*other.w+self.x*other.x+self.y*other.y+self.z*other.z,1.0),-1.0))
+  return _math.acos(self._dot(other))
  def __matmul__(self, fov):
   if not isinstance(fov, int|float): raise ValueError('FOV must be a float or int')
   scale = _math.tan(self.phi)/_math.tan(fov/2)
@@ -122,8 +122,9 @@ class Spheric:
    s = _math.sin(k*self.theta)*c
    return Spheric(_math.sin((1-k)*self.theta)*c+self.w*s,self.x*s,self.y*s,self.z*s)
   else : return Spheric(self.theta * k,self.phi,self.psi)
+ def _dot(self, other) : return max(min(self.w*other.w+self.x*other.x+self.y*other.y+self.z*other.z,1),-1)
  def __abs__(self) : return self.theta
- def __eq__(self, other) : return abs((self - other).w-1) < 0.1
+ def __eq__(self, other) : return self._dot(other) == 1
  def __rshift__(self, other) : return _SphericInterpolator(self, other)
  def __xor__(self, other) : return _AngleConstructor(self, other)
  
@@ -153,6 +154,8 @@ class _SphericInterpolator:
 class _AngleConstructor:
  def __init__(self, q1, q2):
   if not (isinstance(q1, Spheric) and isinstance(q2, Spheric)): raise ValueError('Both operands must be Spheric')
+  self._dot = q1._dot(q2)
+  if self._dot == 1: raise ValueError('Angle endpoints cannot be equal')
   self._p1 = q1.cartesian()
   self._p2 = q2.cartesian()
  @property
@@ -165,9 +168,10 @@ class _AngleConstructor:
   dot = lambda a,b: a[0]*b[0]+a[1]*b[1]+a[2]*b[2]+a[3]*b[3]
   a = dot(self._p1,q)
   b = dot(self._p2,q)
-  c = dot(self._p1,self._p2)
   sa = _math.sqrt(1-a**2)
   sb = _math.sqrt(1-b**2)
-  return _math.acos(max(min((c-a*b)/(sa*sb),1),-1))
+  S = sa*sb
+  if S == 0: raise ValueError('Angle vertex cannot be equal to endpoint')
+  return _math.acos(max(min((self._dot-a*b)/S,1),-1))
  def __repr__(self) : return f'AngleConstructor[({self._p1[0]:.3g}, {self._p1[1]:.3g}, {self._p1[2]:.3g}, {self._p1[3]:.3g}) ^ ({self._p2[0]:.3g}, {self._p2[1]:.3g}, {self._p2[2]:.3g}, {self._p2[3]:.3g})]'
 
