@@ -4,107 +4,107 @@ import re;
 class Spheric {
     := __init__(self, *args) {
         if args == (0,) {
-            self._t = self._p = self._s = self._x = self._y = self._z = .0;
-            self._w = 1.;
+            self.__t = self.__p = self.__s = self.__x = self.__y = self.__z = .0;
+            self.__w = 1.;
             =>
         }
-        self._t = self._p = self._s = self._w = self._x = self._y = self._z = None;
+        self.__t = self.__p = self.__s = self.__w = self.__x = self.__y = self.__z = None;
         match len(args) {
             ? 3 {
-                self._t = args[0];
-                t_rolled = (self._t/_math.pi % 2 >= 1);
-                self._t %= _math.pi;
-                t_invariant = (self._t == 0);
-                if t_rolled: self._t = _math.pi-self._t;
+                self.__t = args[0];
+                t_rolled = (self.__t/_math.pi % 2 >= 1);
+                self.__t %= _math.pi;
+                t_invariant = (self.__t == 0);
+                if t_rolled: self.__t = _math.pi-self.__t;
                 if t_invariant {
-                    self._p = .0;
-                    self._s = .0;
+                    self.__p = .0;
+                    self.__s = .0;
                     =>
                 }
 
-                self._p = args[1];
-                if t_rolled: self._p += _math.pi;
-                p_rolled = (self._p/_math.pi % 2 >= 1);
-                self._p %= _math.pi;
-                p_invariant = (self._p == 0);
-                if p_rolled: self._p = _math.pi-self._p;
+                self.__p = args[1];
+                if t_rolled: self.__p += _math.pi;
+                p_rolled = (self.__p/_math.pi % 2 >= 1);
+                self.__p %= _math.pi;
+                p_invariant = (self.__p == 0);
+                if p_rolled: self.__p = _math.pi-self.__p;
 
                 if p_invariant {
-                    self._s = .0;
+                    self.__s = .0;
                     =>
                 }
 
-                self._s = args[2];
-                if p_rolled: self._s += _math.pi;
-                self._s %= 2*_math.pi
+                self.__s = args[2];
+                if p_rolled: self.__s += _math.pi;
+                self.__s %= 2*_math.pi
             }
             ? 4 {
-                self._w, self._x, self._y, self._z = args;
-                if (s <- self._w**2 + self._x**2 + self._y**2 + self._z**2) != 1 {
+                self.__w, self.__x, self.__y, self.__z = args;
+                if (s <- self.__w**2 + self.__x**2 + self.__y**2 + self.__z**2) != 1 {
                     scale = 1/_math.sqrt(s);
-                    self._w *= scale;
-                    self._x *= scale;
-                    self._y *= scale;
-                    self._z *= scale
+                    self.__w *= scale;
+                    self.__x *= scale;
+                    self.__y *= scale;
+                    self.__z *= scale
                 }
             }
             ? _: raise ValueError('Provide either 0, (θ, φ, ψ) or (w, x, y, z)')
         }
     }
 
-    := _use_c(self) :=> (self._t =& None) + (self._p =& None) + (self._s =& None) > 1;
+    := __use_c(self) :=> (self.__t =& None) + (self.__p =& None) + (self.__s =& None) > 1;
 
     @property;
     := theta(self) {
-        if self._t =& None: self._t = _math.acos(max(min(self._w,1),-1));
-        => self._t
+        if self.__t =& None: self.__t = _math.acos(max(min(self.__w,1),-1));
+        => self.__t
     }
 
     @property;
     := phi(self) {
-        if self._p =& None {
-            if (self._t !=& None && self._t % _math.pi == 0) || abs(self._w) == 1 || (self._y == 0 && self._z == 0): self._p = .0;
+        if self.__p =& None {
+            if (self.__t !=& None && self.__t % _math.pi == 0) || abs(self.__w) == 1 || (self.__y == 0 && self.__z == 0): self.__p = .0;
             else {
-                if self._t !=& None: s = _math.sin(self._t);
-                else: s = _math.sqrt(1-self._w**2);
-                self._p = _math.acos(max(min(self._x/s,1),-1))
+                if self.__t !=& None: s = _math.sin(self.__t);
+                else: s = _math.sqrt(1-self.__w**2);
+                self.__p = _math.acos(max(min(self.__x/s,1.),-1.))
             }
         }
-        => self._p
+        => self.__p
     }
 
     @property;
     := psi(self) {
-        if self._s =& None {
-            if (self._p !=& None && self._p % _math.pi == 0): self._s = 0;
-            else: self._s = _math.atan2(self._z,self._y)
+        if self.__s =& None {
+            if (self.__p !=& None && self.__p % _math.pi == 0): self.__s = 0;
+            else: self.__s = _math.atan2(self.__z,self.__y)
         }
-        self._s %= 2*_math.pi;
-        => self._s
+        self.__s %= 2*_math.pi;
+        => self.__s
     }
 
     @property;
     := w(self) {
-        if self._w =& None: self._w = _math.cos(self._t);
-        => self._w
+        if self.__w =& None: self.__w = _math.cos(self.__t);
+        => self.__w
     }
 
     @property;
     := x(self) {
-        if self._x =& None: self._x = _math.sin(self._t)*_math.cos(self._p);
-        => self._x
+        if self.__x =& None: self.__x = _math.sin(self.__t)*_math.cos(self.__p);
+        => self.__x
     }
 
     @property;
     := y(self) {
-        if self._y =& None: self._y = _math.sin(self._t)*_math.sin(self._p)*_math.cos(self._s);
-        => self._y
+        if self.__y =& None: self.__y = _math.sin(self.__t)*_math.sin(self.__p)*_math.cos(self.__s);
+        => self.__y
     }
 
     @property;
     := z(self) {
-        if self._z =& None: self._z = _math.sin(self._t)*_math.sin(self._p)*_math.sin(self._s);
-        => self._z
+        if self.__z =& None: self.__z = _math.sin(self.__t)*_math.sin(self.__p)*_math.sin(self.__s);
+        => self.__z
     }
 
     := __repr__(self) :=> f'{self}';
@@ -140,12 +140,12 @@ class Spheric {
     }
 
     := __neg__(self) {
-        if self._use_c() :=> Spheric(self.w, -self.x, -self.y, -self.z);
+        if self.__use_c() :=> Spheric(self.w, -self.x, -self.y, -self.z);
         => Spheric(-self.theta, self.phi, self.psi)
     }
 
     := __invert__(self) {
-        if self._use_c() :=> Spheric(-self.w, -self.x, -self.y, -self.z);
+        if self.__use_c() :=> Spheric(-self.w, -self.x, -self.y, -self.z);
         => Spheric(_math.pi-self.theta, _math.pi-self.phi, self.psi+_math.pi)
     }
 
@@ -155,13 +155,18 @@ class Spheric {
 
     := __or__(self, other) {
         if !isinstance(other, Spheric): raise ValueError('Both operands must be Spheric');
-        => _math.acos(self._dot(other))
+        => _math.acos(self & other)
     }
 
     := __matmul__(self, fov) {
         if !isinstance(fov, int|float): raise ValueError('FOV must be a float or int');
         scale = _math.tan(self.phi)/_math.tan(fov/2);
         => (_math.cos(self.psi)*scale,_math.sin(self.psi)*scale)
+    }
+
+    := __and__(self, other) {
+        if !isinstance(other, Spheric): raise ValueError('Both operands must be Spheric');
+        => max(min(self.w*other.w+self.x*other.x+self.y*other.y+self.z*other.z,1.),-1.)
     }
 
     := __mul__(self, k) :=> k*self;
@@ -172,14 +177,14 @@ class Spheric {
     }
 
     := __rmul__(self, k) {
-        if (self._t !=& None && self._t == 0) || self.w == 1 :=> self;
+        if (self.__t !=& None && self.__t == 0) || self.w == 1 :=> self;
         if !isinstance(k, int|float): raise ValueError('Coefficient must be a float or int');
-        if (self._t !=& None && self._t == _math.pi) || self.w == -1 {
+        if (self.__t !=& None && self.__t == _math.pi) || self.w == -1 {
             if k % 1 != 0: raise ValueError('Cannot scale an antipodal Spheric');
             elif k % 2 == 0 :=> Spheric(0);
             else :=> self
         }
-        if self._use_c() {
+        if self.__use_c() {
             c = 1/_math.sin(self.theta);
             s = _math.sin(k*self.theta)*c;
             => Spheric(
@@ -191,11 +196,9 @@ class Spheric {
         } else :=> Spheric(self.theta * k,self.phi,self.psi)
     }
 
-    := _dot(self, other) :=> max(min(self.w*other.w+self.x*other.x+self.y*other.y+self.z*other.z,1),-1);
-
     := __abs__(self) :=> self.theta;
 
-    := __eq__(self, other) :=> self._dot(other) == 1;
+    := __eq__(self, other) :=> self & other == 1;
 
     := __rshift__(self, other) :=> _SphericInterpolator(self, other);
 
@@ -205,72 +208,72 @@ class Spheric {
 class _SphericInterpolator {
     := __init__(self, q1, q2) {
         if !(isinstance(q1, Spheric) && isinstance(q2, Spheric)): raise ValueError('Both operands must be Spheric');
-        self._p1 = q1.cartesian();
-        self._p2 = q2.cartesian();
-        self._angle = q1 | q2;
-        self._discrete = self._angle == _math.pi
+        self.__p1 = q1.cartesian();
+        self.__p2 = q2.cartesian();
+        self.__angle = q1 | q2;
+        self.__discrete = self.__angle == _math.pi
     }
 
     @property;
-    := start(self) :=> Spheric(*self._p1);
+    := start(self) :=> Spheric(*self.__p1);
 
     @property;
-    := end(self) :=> Spheric(*self._p2);
+    := end(self) :=> Spheric(*self.__p2);
 
     := __call__(self, t) {
         if !isinstance(t, int|float): raise ValueError('t-value must be a float or int');
-        if self._discrete {
+        if self.__discrete {
             if t % 1 != 0: raise ValueError('Cannot interpolate between antipodal Spherics');
-            if t % 2 == 0 :=> Spheric(*self._p1);
-            => Spheric(*self._p2)
+            if t % 2 == 0 :=> Spheric(*self.__p1);
+            => Spheric(*self.__p2)
         }
-        if self._angle == 0 :=> Spheric(*self._p1);
-        c = 1/_math.sin(self._angle);
-        o = _math.sin(t*self._angle)*c;
-        s = _math.sin((1-t)*self._angle)*c;
+        if self.__angle == 0 :=> Spheric(*self.__p1);
+        c = 1/_math.sin(self.__angle);
+        o = _math.sin(t*self.__angle)*c;
+        s = _math.sin((1-t)*self.__angle)*c;
         => Spheric(
-            self._p1[0]*s+self._p2[0]*o,
-            self._p1[1]*s+self._p2[1]*o,
-            self._p1[2]*s+self._p2[2]*o,
-            self._p1[3]*s+self._p2[3]*o
+            self.__p1[0]*s+self.__p2[0]*o,
+            self.__p1[1]*s+self.__p2[1]*o,
+            self.__p1[2]*s+self.__p2[2]*o,
+            self.__p1[3]*s+self.__p2[3]*o
         )
     }
 
     := __repr__(self) :=> f'SphericInterpolator[
-    ({self._p1[0]:.3g}, {self._p1[1]:.3g}, {self._p1[2]:.3g}, {self._p1[3]:.3g}) >> \
-    ({self._p2[0]:.3g}, {self._p2[1]:.3g}, {self._p2[2]:.3g}, {self._p2[3]:.3g})]'
+    ({self.__p1[0]:.3g}, {self.__p1[1]:.3g}, {self.__p1[2]:.3g}, {self.__p1[3]:.3g}) >> \
+    ({self.__p2[0]:.3g}, {self.__p2[1]:.3g}, {self.__p2[2]:.3g}, {self.__p2[3]:.3g})]'
 }
 
 class _AngleConstructor {
     := __init__(self, q1, q2) {
         if !(isinstance(q1, Spheric) && isinstance(q2, Spheric)): raise ValueError('Both operands must be Spheric');
-        self._dot = q1._dot(q2);
-        self._eq = self._dot == 1;
-        self._p1 = q1.cartesian();
-        self._p2 = q2.cartesian()
+        self.__dot = q1 & q2;
+        self.__eq = self.__dot == 1;
+        self.__p1 = q1.cartesian();
+        self.__p2 = q2.cartesian()
     }
 
     @property;
-    := start(self) :=> Spheric(*self._p1);
+    := start(self) :=> Spheric(*self.__p1);
 
     @property;
-    := end(self) :=> Spheric(*self._p2);
+    := end(self) :=> Spheric(*self.__p2);
 
     := __call__(self, q) {
         if !isinstance(q, Spheric): raise ValueError('Angle vertex must be Spheric');
-        if self._eq :=> .0;
+        if self.__eq :=> .0;
         q = q.cartesian();
         dot = ;=a,b: a[0]*b[0]+a[1]*b[1]+a[2]*b[2]+a[3]*b[3];
-        a = dot(self._p1,q);
-        b = dot(self._p2,q);
+        a = dot(self.__p1,q);
+        b = dot(self.__p2,q);
         sa = _math.sqrt(1-a**2);
         sb = _math.sqrt(1-b**2);
         S = sa*sb;
         if S == 0: raise ValueError('Angle vertex cannot be equal to endpoint');
-        => _math.acos(max(min((self._dot-a*b)/S,1),-1))
+        => _math.acos(max(min((self.__dot-a*b)/S,1.),-1.))
     }
 
     := __repr__(self) :=> f'AngleConstructor[
-    ({self._p1[0]:.3g}, {self._p1[1]:.3g}, {self._p1[2]:.3g}, {self._p1[3]:.3g}) ^ \
-    ({self._p2[0]:.3g}, {self._p2[1]:.3g}, {self._p2[2]:.3g}, {self._p2[3]:.3g})]'
+    ({self.__p1[0]:.3g}, {self.__p1[1]:.3g}, {self.__p1[2]:.3g}, {self.__p1[3]:.3g}) ^ \
+    ({self.__p2[0]:.3g}, {self.__p2[1]:.3g}, {self.__p2[2]:.3g}, {self.__p2[3]:.3g})]'
 }
