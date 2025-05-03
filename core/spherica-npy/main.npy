@@ -3,8 +3,6 @@ import re;
 
 class Spheric {
     := __init__(self, *args) {
-        if any(!isinstance(i, int|float) for i -> args): raise TypeError('Coordinates must be float or int');
-        if any(_math.isnan(i) || _math.isinf(i) for i -> args):
         if args == (0,) {
             self.__t = self.__p = self.__s = self.__x = self.__y = self.__z = .0;
             self.__w = 1.;
