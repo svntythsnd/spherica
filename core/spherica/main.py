@@ -101,8 +101,7 @@ class Spheric:
  def __invert__(self):
   if self.__use_c() : return Spheric(-self.w, -self.x, -self.y, -self.z)
   return Spheric(_math.pi-self.theta, _math.pi-self.phi, self.psi+_math.pi)
- def __sub__(self, other):
-  return self + (-other)
+ def __sub__(self, other) : return self + (-other)
  def __or__(self, other):
   if not isinstance(other, Spheric): raise ValueError('Both operands must be Spheric')
   return _math.acos(self & other)
@@ -118,8 +117,8 @@ class Spheric:
   if not isinstance(k, int|float): raise ValueError('Divisor must be a float or int')
   return 1/k*self
  def __rmul__(self, k):
-  if (self.__t is not None and self.__t == 0) or self.w == 1 : return self
   if not isinstance(k, int|float): raise ValueError('Coefficient must be a float or int')
+  if (self.__t is not None and self.__t == 0) or self.w == 1 : return self
   if (self.__t is not None and self.__t == _math.pi) or self.w == -1:
    if k % 1 != 0: raise ValueError('Cannot scale an antipodal Spheric')
    elif k % 2 == 0 : return Spheric(0)

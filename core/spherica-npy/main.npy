@@ -149,9 +149,7 @@ class Spheric {
         => Spheric(_math.pi-self.theta, _math.pi-self.phi, self.psi+_math.pi)
     }
 
-    := __sub__(self, other) {
-        => self + (-other)
-    }
+    := __sub__(self, other) :=> self + (-other);
 
     := __or__(self, other) {
         if !isinstance(other, Spheric): raise ValueError('Both operands must be Spheric');
@@ -177,8 +175,8 @@ class Spheric {
     }
 
     := __rmul__(self, k) {
-        if (self.__t !=& None && self.__t == 0) || self.w == 1 :=> self;
         if !isinstance(k, int|float): raise ValueError('Coefficient must be a float or int');
+        if (self.__t !=& None && self.__t == 0) || self.w == 1 :=> self;
         if (self.__t !=& None && self.__t == _math.pi) || self.w == -1 {
             if k % 1 != 0: raise ValueError('Cannot scale an antipodal Spheric');
             elif k % 2 == 0 :=> Spheric(0);
