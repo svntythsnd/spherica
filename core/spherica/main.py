@@ -56,6 +56,11 @@ class Spheric:
  def theta(self):
   if self.__t is None: self.__t = _math.acos(max(min(self.__w,1),-1))
   return self.__t
+ @theta.setter
+ def theta(self, val):
+  a = list(self.angles())
+  a[0] = val
+  self.__init__(*a)
  @property
  def phi(self):
   if self.__p is None:
@@ -66,6 +71,11 @@ class Spheric:
     self.__p = _math.acos(max(min(self.__x/s,1.),-1.))
    
   return self.__p
+ @phi.setter
+ def phi(self, val):
+  a = list(self.angles())
+  a[1] = val
+  self.__init__(*a)
  @property
  def psi(self):
   if self.__s is None:
@@ -73,22 +83,47 @@ class Spheric:
    else: self.__s = _math.atan2(self.__z,self.__y)
   self.__s %= 2*_math.pi
   return self.__s
+ @psi.setter
+ def psi(self, val):
+  a = list(self.angles())
+  a[2] = val
+  self.__init__(*a)
  @property
  def w(self):
   if self.__w is None: self.__w = _math.cos(self.__t)
   return self.__w
+ @w.setter
+ def w(self, val):
+  c = list(self.cartesian())
+  c[0] = val
+  self.__init__(*c)
  @property
  def x(self):
   if self.__x is None: self.__x = _math.sin(self.__t)*_math.cos(self.__p)
   return self.__x
+ @x.setter
+ def x(self, val):
+  c = list(self.cartesian())
+  c[1] = val
+  self.__init__(*c)
  @property
  def y(self):
   if self.__y is None: self.__y = _math.sin(self.__t)*_math.sin(self.__p)*_math.cos(self.__s)
   return self.__y
+ @y.setter
+ def y(self, val):
+  c = list(self.cartesian())
+  c[2] = val
+  self.__init__(*c)
  @property
  def z(self):
   if self.__z is None: self.__z = _math.sin(self.__t)*_math.sin(self.__p)*_math.sin(self.__s)
   return self.__z
+ @z.setter
+ def z(self, val):
+  c = list(self.cartesian())
+  c[3] = val
+  self.__init__(*c)
  def __repr__(self) : return f'{self}'
  def __format__(self, format_spec):
   if re.match(r'^(.\d+)?[GgFf][cAa]$', format_spec):

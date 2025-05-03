@@ -73,6 +73,13 @@ class Spheric {
         => self.__t
     }
 
+    @theta.setter;
+    := theta(self, val) {
+        a = list(self.angles());
+        a[0] = val;
+        self.__init__(*a)
+    }
+
     @property;
     := phi(self) {
         if self.__p =& None {
@@ -86,6 +93,13 @@ class Spheric {
         => self.__p
     }
 
+    @phi.setter;
+    := phi(self, val) {
+        a = list(self.angles());
+        a[1] = val;
+        self.__init__(*a)
+    }
+
     @property;
     := psi(self) {
         if self.__s =& None {
@@ -96,10 +110,24 @@ class Spheric {
         => self.__s
     }
 
+    @psi.setter;
+    := psi(self, val) {
+        a = list(self.angles());
+        a[2] = val;
+        self.__init__(*a)
+    }
+
     @property;
     := w(self) {
         if self.__w =& None: self.__w = _math.cos(self.__t);
         => self.__w
+    }
+
+    @w.setter;
+    := w(self, val) {
+        c = list(self.cartesian());
+        c[0] = val;
+        self.__init__(*c)
     }
 
     @property;
@@ -108,16 +136,37 @@ class Spheric {
         => self.__x
     }
 
+    @x.setter;
+    := x(self, val) {
+        c = list(self.cartesian());
+        c[1] = val;
+        self.__init__(*c)
+    }
+
     @property;
     := y(self) {
         if self.__y =& None: self.__y = _math.sin(self.__t)*_math.sin(self.__p)*_math.cos(self.__s);
         => self.__y
     }
 
+    @y.setter;
+    := y(self, val) {
+        c = list(self.cartesian());
+        c[2] = val;
+        self.__init__(*c)
+    }
+
     @property;
     := z(self) {
         if self.__z =& None: self.__z = _math.sin(self.__t)*_math.sin(self.__p)*_math.sin(self.__s);
         => self.__z
+    }
+
+    @z.setter;
+    := z(self, val) {
+        c = list(self.cartesian());
+        c[3] = val;
+        self.__init__(*c)
     }
 
     := __repr__(self) :=> f'{self}';
