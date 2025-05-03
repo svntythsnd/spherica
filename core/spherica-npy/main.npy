@@ -1,5 +1,6 @@
 import math as _math;
 import re;
+from copy import copy as _copy;
 
 class Spheric {
     := __init__(self, *args) {
@@ -11,16 +12,12 @@ class Spheric {
         self.__t = self.__p = self.__s = self.__w = self.__x = self.__y = self.__z = None;
         match len(args) {
             ? 3 {
-                self.__t, self.__p, self.__s = args;
+                for i -> args {
+                    if !isinstance(i, int|float): raise TypeError('Angles must be numerical');
+                    if _math.isnan(i) || _math.isinf(i): raise ValueError('Angles cannot be ±inf or NaN');
+                }
 
-                if !isinstance(self.__t, int|float) ||
-                   !isinstance(self.__p, int|float) ||
-                   !isinstance(self.__s, int|float): raise TypeError('Angles must be float or int');
-
-                if _math.isnan(self.__t) || _math.isinf(self.__t) ||
-                   _math.isnan(self.__p) || _math.isinf(self.__p) ||
-                   _math.isnan(self.__s) || _math.isinf(self.__s): raise ValueError('Angles cannot be ±inf or NaN');
-
+                self.__t = args[0];
                 t_rolled = (self.__t/_math.pi % 2 >= 1);
                 self.__t %= _math.pi;
                 t_invariant = (self.__t == 0);
@@ -31,6 +28,7 @@ class Spheric {
                     =>
                 }
 
+                self.__p = args[1];
                 if t_rolled: self.__p += _math.pi;
                 p_rolled = (self.__p/_math.pi % 2 >= 1);
                 self.__p %= _math.pi;
@@ -42,21 +40,17 @@ class Spheric {
                     =>
                 }
 
+                self.__s = args[2];
                 if p_rolled: self.__s += _math.pi;
                 self.__s %= 2*_math.pi
             }
             ? 4 {
+                for i -> args {
+                    if !isinstance(i, int|float): raise TypeError('Coordinates must be numerical');
+                    if _math.isnan(i) || _math.isinf(i): raise ValueError('Coordinates cannot be ±inf or NaN');
+                }
+
                 self.__w, self.__x, self.__y, self.__z = args;
-
-                if !isinstance(self.__w, int|float) ||
-                   !isinstance(self.__x, int|float) ||
-                   !isinstance(self.__y, int|float) ||
-                   !isinstance(self.__z, int|float): raise TypeError('Coordinates must be float or int');
-
-                if _math.isnan(self.__w) || _math.isinf(self.__w) ||
-                   _math.isnan(self.__x) || _math.isinf(self.__x) ||
-                   _math.isnan(self.__y) || _math.isinf(self.__y) ||
-                   _math.isnan(self.__z) || _math.isinf(self.__z): raise ValueError('Coordinates cannot be ±inf or NaN');
 
                 if (s <- self.__w**2 + self.__x**2 + self.__y**2 + self.__z**2) != 1 {
                     if s == 0: raise ValueError('(0, 0, 0, 0) is not normalizable');
@@ -176,7 +170,7 @@ class Spheric {
     }
 
     := __matmul__(self, fov) {
-        if !isinstance(fov, int|float): raise TypeError('FOV must be a float or int');
+        if !isinstance(fov, int|float): raise TypeError('FOV must be numerical');
         scale = _math.tan(self.phi)/_math.tan(fov/2);
         => (_math.cos(self.psi)*scale,_math.sin(self.psi)*scale)
     }
@@ -189,12 +183,12 @@ class Spheric {
     := __mul__(self, k) :=> k*self;
 
     := __truediv__(self, k) {
-        if !isinstance(k, int|float): raise TypeError('Divisor must be a float or int');
+        if !isinstance(k, int|float): raise TypeError('Divisor must be numerical');
         => 1/k*self
     }
 
     := __rmul__(self, k) {
-        if !isinstance(k, int|float): raise TypeError('Coefficient must be a float or int');
+        if !isinstance(k, int|float): raise TypeError('Coefficient must be numerical');
         if (self.__t !=& None && self.__t == 0) || self.w == 1 :=> self;
         if (self.__t !=& None && self.__t == _math.pi) || self.w == -1 {
             if k % 1 != 0: raise ValueError('Cannot scale an antipodal Spheric');
@@ -220,6 +214,8 @@ class Spheric {
     := __rshift__(self, other) :=> _SphericInterpolator(self, other);
 
     := __xor__(self, other) :=> _AngleConstructor(self, other);
+
+    := __pos__(self) :=> _copy(self);
 }
 
 class _SphericInterpolator {
@@ -238,7 +234,7 @@ class _SphericInterpolator {
     := end(self) :=> Spheric(*self.__p2);
 
     := __call__(self, t) {
-        if !isinstance(t, int|float): raise TypeError('t-value must be a float or int');
+        if !isinstance(t, int|float): raise TypeError('t-value must be numerical');
         if self.__discrete {
             if t % 1 != 0: raise ValueError('Cannot interpolate between antipodal Spherics');
             if t % 2 == 0 :=> Spheric(*self.__p1);

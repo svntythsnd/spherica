@@ -1,5 +1,6 @@
 import math as _math
 import re
+from copy import copy as _copy
 class Spheric:
  def __init__(self, *args):
   if args == (0,):
@@ -9,9 +10,11 @@ class Spheric:
   self.__t = self.__p = self.__s = self.__w = self.__x = self.__y = self.__z = None
   match len(args):
    case 3:
-    self.__t, self.__p, self.__s = args
-    if not isinstance(self.__t, int|float) or not isinstance(self.__p, int|float) or not isinstance(self.__s, int|float): raise TypeError('Angles must be float or int')
-    if _math.isnan(self.__t) or _math.isinf(self.__t) or _math.isnan(self.__p) or _math.isinf(self.__p) or _math.isnan(self.__s) or _math.isinf(self.__s): raise ValueError('Angles cannot be ±inf or NaN')
+    for i in args:
+     if not isinstance(i, int|float): raise TypeError('Angles must be numerical')
+     if _math.isnan(i) or _math.isinf(i): raise ValueError('Angles cannot be ±inf or NaN')
+     
+    self.__t = args[0]
     t_rolled = (self.__t/_math.pi % 2 >= 1)
     self.__t %= _math.pi
     t_invariant = (self.__t == 0)
@@ -20,6 +23,7 @@ class Spheric:
      self.__p = .0
      self.__s = .0
      return 
+    self.__p = args[1]
     if t_rolled: self.__p += _math.pi
     p_rolled = (self.__p/_math.pi % 2 >= 1)
     self.__p %= _math.pi
@@ -28,12 +32,15 @@ class Spheric:
     if p_invariant:
      self.__s = .0
      return 
+    self.__s = args[2]
     if p_rolled: self.__s += _math.pi
     self.__s %= 2*_math.pi
    case 4:
+    for i in args:
+     if not isinstance(i, int|float): raise TypeError('Coordinates must be numerical')
+     if _math.isnan(i) or _math.isinf(i): raise ValueError('Coordinates cannot be ±inf or NaN')
+     
     self.__w, self.__x, self.__y, self.__z = args
-    if not isinstance(self.__w, int|float) or not isinstance(self.__x, int|float) or not isinstance(self.__y, int|float) or not isinstance(self.__z, int|float): raise TypeError('Coordinates must be float or int')
-    if _math.isnan(self.__w) or _math.isinf(self.__w) or _math.isnan(self.__x) or _math.isinf(self.__x) or _math.isnan(self.__y) or _math.isinf(self.__y) or _math.isnan(self.__z) or _math.isinf(self.__z): raise ValueError('Coordinates cannot be ±inf or NaN')
     if (s := self.__w**2 + self.__x**2 + self.__y**2 + self.__z**2) != 1:
      if s == 0: raise ValueError('(0, 0, 0, 0) is not normalizable')
      scale = 1/_math.sqrt(s)
@@ -109,7 +116,7 @@ class Spheric:
   if not isinstance(other, Spheric): raise TypeError('Both operands must be Spheric')
   return _math.acos(self & other)
  def __matmul__(self, fov):
-  if not isinstance(fov, int|float): raise TypeError('FOV must be a float or int')
+  if not isinstance(fov, int|float): raise TypeError('FOV must be numerical')
   scale = _math.tan(self.phi)/_math.tan(fov/2)
   return (_math.cos(self.psi)*scale,_math.sin(self.psi)*scale)
  def __and__(self, other):
@@ -117,10 +124,10 @@ class Spheric:
   return max(min(self.w*other.w+self.x*other.x+self.y*other.y+self.z*other.z,1.),-1.)
  def __mul__(self, k) : return k*self
  def __truediv__(self, k):
-  if not isinstance(k, int|float): raise TypeError('Divisor must be a float or int')
+  if not isinstance(k, int|float): raise TypeError('Divisor must be numerical')
   return 1/k*self
  def __rmul__(self, k):
-  if not isinstance(k, int|float): raise TypeError('Coefficient must be a float or int')
+  if not isinstance(k, int|float): raise TypeError('Coefficient must be numerical')
   if (self.__t is not None and self.__t == 0) or self.w == 1 : return self
   if (self.__t is not None and self.__t == _math.pi) or self.w == -1:
    if k % 1 != 0: raise ValueError('Cannot scale an antipodal Spheric')
@@ -135,6 +142,7 @@ class Spheric:
  def __eq__(self, other) : return self & other == 1
  def __rshift__(self, other) : return _SphericInterpolator(self, other)
  def __xor__(self, other) : return _AngleConstructor(self, other)
+ def __pos__(self) : return _copy(self)
  
 class _SphericInterpolator:
  def __init__(self, q1, q2):
@@ -148,7 +156,7 @@ class _SphericInterpolator:
  @property
  def end(self) : return Spheric(*self.__p2)
  def __call__(self, t):
-  if not isinstance(t, int|float): raise TypeError('t-value must be a float or int')
+  if not isinstance(t, int|float): raise TypeError('t-value must be numerical')
   if self.__discrete:
    if t % 1 != 0: raise ValueError('Cannot interpolate between antipodal Spherics')
    if t % 2 == 0 : return Spheric(*self.__p1)
