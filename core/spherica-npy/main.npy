@@ -52,6 +52,8 @@ class Spheric {
         }
     }
 
+    := _use_c(self) :=> (self._t =& None) + (self._p =& None) + (self._s =& None) > 1;
+
     @property;
     := theta(self) {
         if self._t =& None: self._t = _math.acos(max(min(self._w,1),-1));
@@ -138,12 +140,12 @@ class Spheric {
     }
 
     := __neg__(self) {
-        if self._s =& None :=> Spheric(self.w, -self.x, -self.y, -self.z);
+        if self._use_c() :=> Spheric(self.w, -self.x, -self.y, -self.z);
         => Spheric(-self.theta, self.phi, self.psi)
     }
 
     := __invert__(self) {
-        if self._s =& None :=> Spheric(-self.w, -self.x, -self.y, -self.z);
+        if self._use_c() :=> Spheric(-self.w, -self.x, -self.y, -self.z);
         => Spheric(_math.pi-self.theta, _math.pi-self.phi, self.psi+_math.pi)
     }
 
@@ -177,7 +179,7 @@ class Spheric {
             elif k % 2 == 0 :=> Spheric(0);
             else :=> self
         }
-        if self._s =& None {
+        if self._use_c() {
             c = 1/_math.sin(self.theta);
             s = _math.sin(k*self.theta)*c;
             => Spheric(

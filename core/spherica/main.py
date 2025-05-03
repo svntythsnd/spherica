@@ -41,6 +41,7 @@ class Spheric:
     
    case _: raise ValueError('Provide either 0, (θ, φ, ψ) or (w, x, y, z)')
   
+ def _use_c(self) : return (self._t is None) + (self._p is None) + (self._s is None) > 1
  @property
  def theta(self):
   if self._t is None: self._t = _math.acos(max(min(self._w,1),-1))
@@ -95,10 +96,10 @@ class Spheric:
   if not isinstance(other, Spheric): raise ValueError('Both operands must be Spheric')
   return Spheric (self.w * other.w - self.x * other.x - self.y * other.y - self.z * other.z,self.w * other.x + self.x * other.w + self.y * other.z - self.z * other.y,self.w * other.y - self.x * other.z + self.y * other.w + self.z * other.x,self.w * other.z + self.x * other.y - self.y * other.x + self.z * other.w)
  def __neg__(self):
-  if self._s is None : return Spheric(self.w, -self.x, -self.y, -self.z)
+  if self._use_c() : return Spheric(self.w, -self.x, -self.y, -self.z)
   return Spheric(-self.theta, self.phi, self.psi)
  def __invert__(self):
-  if self._s is None : return Spheric(-self.w, -self.x, -self.y, -self.z)
+  if self._use_c() : return Spheric(-self.w, -self.x, -self.y, -self.z)
   return Spheric(_math.pi-self.theta, _math.pi-self.phi, self.psi+_math.pi)
  def __sub__(self, other):
   return self + (-other)
@@ -120,7 +121,7 @@ class Spheric:
    if k % 1 != 0: raise ValueError('Cannot scale an antipodal Spheric')
    elif k % 2 == 0 : return Spheric(0)
    else : return self
-  if self._s is None:
+  if self._use_c():
    c = 1/_math.sin(self.theta)
    s = _math.sin(k*self.theta)*c
    return Spheric(_math.sin((1-k)*self.theta)*c+self.w*s,self.x*s,self.y*s,self.z*s)
