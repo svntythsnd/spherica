@@ -80,11 +80,14 @@ class Spheric:
   return self._z
  def __repr__(self) : return f'{self}'
  def __format__(self, format_spec):
-  if re.match(r'^(.\d+)?[GgFf][ca]$', format_spec):
+  if re.match(r'^(.\d+)?[GgFf][cAa]$', format_spec):
    type = format_spec[-2]
    digits = format_spec[:-2]
-   if format_spec[-1] == 'c': return f'Spheric({{:{digits}{type}}}, {{:{digits}{type}}}, {{:{digits}{type}}}, {{:{digits}{type}}})'.format(self.w, self.x, self.y, self.z)
-   else : return f'Spheric({{:{digits}{type}}}, {{:{digits}{type}}}, {{:{digits}{type}}})'.format(self.theta, self.phi, self.psi)
+   match format_spec[-1]:
+    case 'c' : return f'Spheric({{:{digits}{type}}}, {{:{digits}{type}}}, {{:{digits}{type}}}, {{:{digits}{type}}})'.format(self.w, self.x, self.y, self.z)
+    case 'a' : return f'Spheric({{:{digits}{type}}}, {{:{digits}{type}}}, {{:{digits}{type}}})'.format(self.theta, self.phi, self.psi)
+    case _ : return f'Spheric({{:{digits}{type}}}π, {{:{digits}{type}}}π, {{:{digits}{type}}}π)'.format(self.theta/_math.pi, self.phi/_math.pi, self.psi/_math.pi)
+   
   return f'{self:.3ga}'
  def angles(self) : return self.theta, self.phi, self.psi
  def cartesian(self) : return self.w, self.x, self.y, self.z

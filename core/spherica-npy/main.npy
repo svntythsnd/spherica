@@ -108,14 +108,17 @@ class Spheric {
     := __repr__(self) :=> f'{self}';
 
     := __format__(self, format_spec) {
-        if re.match(r'^(.\d+)?[GgFf][ca]$', format_spec) {
+        if re.match(r'^(.\d+)?[GgFf][cAa]$', format_spec) {
             type = format_spec[-2];
             digits = format_spec[:-2];
-            if format_spec[-1] == 'c':
-                => f'Spheric({{:{digits}{type}}}, {{:{digits}{type}}}, {{:{digits}{type}}}, {{:{digits}{type}}})'
-                   .format(self.w, self.x, self.y, self.z);
-            else :=> f'Spheric({{:{digits}{type}}}, {{:{digits}{type}}}, {{:{digits}{type}}})'
-                   .format(self.theta, self.phi, self.psi)
+            match format_spec[-1] {
+                ? 'c' :=> f'Spheric({{:{digits}{type}}}, {{:{digits}{type}}}, {{:{digits}{type}}}, {{:{digits}{type}}})'
+                          .format(self.w, self.x, self.y, self.z);
+                ? 'a' :=> f'Spheric({{:{digits}{type}}}, {{:{digits}{type}}}, {{:{digits}{type}}})'
+                          .format(self.theta, self.phi, self.psi);
+                ? _ :=> f'Spheric({{:{digits}{type}}}π, {{:{digits}{type}}}π, {{:{digits}{type}}}π)'
+                        .format(self.theta/_math.pi, self.phi/_math.pi, self.psi/_math.pi)
+            }
         }
         => f'{self:.3ga}'
     }
