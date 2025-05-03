@@ -2,14 +2,17 @@ import math as _math
 import re
 class Spheric:
  def __init__(self, *args):
-  if args == (0,):
+  if any( not isinstance(i, int|float) for i in args): raise TypeError('Coordinates must be float or int')
+  if any(_math.isnan(i) or _math.isinf(i) for i in args):if args == (0,):
    self.__t = self.__p = self.__s = self.__x = self.__y = self.__z = .0
    self.__w = 1.
    return 
   self.__t = self.__p = self.__s = self.__w = self.__x = self.__y = self.__z = None
   match len(args):
    case 3:
-    self.__t = args[0]
+    self.__t, self.__p, self.__s = args
+    if not isinstance(self.__t, int|float) or not isinstance(self.__p, int|float) or not isinstance(self.__s, int|float): raise TypeError('Angles must be float or int')
+    if _math.isnan(self.__t) or _math.isinf(self.__t) or _math.isnan(self.__p) or _math.isinf(self.__p) or _math.isnan(self.__s) or _math.isinf(self.__s): raise ValueError('Angles cannot be ±inf or NaN')
     t_rolled = (self.__t/_math.pi % 2 >= 1)
     self.__t %= _math.pi
     t_invariant = (self.__t == 0)
@@ -18,7 +21,6 @@ class Spheric:
      self.__p = .0
      self.__s = .0
      return 
-    self.__p = args[1]
     if t_rolled: self.__p += _math.pi
     p_rolled = (self.__p/_math.pi % 2 >= 1)
     self.__p %= _math.pi
@@ -27,11 +29,12 @@ class Spheric:
     if p_invariant:
      self.__s = .0
      return 
-    self.__s = args[2]
     if p_rolled: self.__s += _math.pi
     self.__s %= 2*_math.pi
    case 4:
     self.__w, self.__x, self.__y, self.__z = args
+    if not isinstance(self.__w, int|float) or not isinstance(self.__x, int|float) or not isinstance(self.__y, int|float) or not isinstance(self.__z, int|float): raise TypeError('Coordinates must be float or int')
+    if _math.isnan(self.__w) or _math.isinf(self.__w) or _math.isnan(self.__x) or _math.isinf(self.__x) or _math.isnan(self.__y) or _math.isinf(self.__y) or _math.isnan(self.__z) or _math.isinf(self.__z): raise ValueError('Coordinates cannot be ±inf or NaN')
     if (s := self.__w**2 + self.__x**2 + self.__y**2 + self.__z**2) != 1:
      if s == 0: raise ValueError('(0, 0, 0, 0) is not normalizable')
      scale = 1/_math.sqrt(s)

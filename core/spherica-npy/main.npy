@@ -3,6 +3,8 @@ import re;
 
 class Spheric {
     := __init__(self, *args) {
+        if any(!isinstance(i, int|float) for i -> args): raise TypeError('Coordinates must be float or int');
+        if any(_math.isnan(i) || _math.isinf(i) for i -> args):
         if args == (0,) {
             self.__t = self.__p = self.__s = self.__x = self.__y = self.__z = .0;
             self.__w = 1.;
@@ -11,7 +13,16 @@ class Spheric {
         self.__t = self.__p = self.__s = self.__w = self.__x = self.__y = self.__z = None;
         match len(args) {
             ? 3 {
-                self.__t = args[0];
+                self.__t, self.__p, self.__s = args;
+
+                if !isinstance(self.__t, int|float) ||
+                   !isinstance(self.__p, int|float) ||
+                   !isinstance(self.__s, int|float): raise TypeError('Angles must be float or int');
+
+                if _math.isnan(self.__t) || _math.isinf(self.__t) ||
+                   _math.isnan(self.__p) || _math.isinf(self.__p) ||
+                   _math.isnan(self.__s) || _math.isinf(self.__s): raise ValueError('Angles cannot be ±inf or NaN');
+
                 t_rolled = (self.__t/_math.pi % 2 >= 1);
                 self.__t %= _math.pi;
                 t_invariant = (self.__t == 0);
@@ -22,7 +33,6 @@ class Spheric {
                     =>
                 }
 
-                self.__p = args[1];
                 if t_rolled: self.__p += _math.pi;
                 p_rolled = (self.__p/_math.pi % 2 >= 1);
                 self.__p %= _math.pi;
@@ -34,12 +44,22 @@ class Spheric {
                     =>
                 }
 
-                self.__s = args[2];
                 if p_rolled: self.__s += _math.pi;
                 self.__s %= 2*_math.pi
             }
             ? 4 {
                 self.__w, self.__x, self.__y, self.__z = args;
+
+                if !isinstance(self.__w, int|float) ||
+                   !isinstance(self.__x, int|float) ||
+                   !isinstance(self.__y, int|float) ||
+                   !isinstance(self.__z, int|float): raise TypeError('Coordinates must be float or int');
+
+                if _math.isnan(self.__w) || _math.isinf(self.__w) ||
+                   _math.isnan(self.__x) || _math.isinf(self.__x) ||
+                   _math.isnan(self.__y) || _math.isinf(self.__y) ||
+                   _math.isnan(self.__z) || _math.isinf(self.__z): raise ValueError('Coordinates cannot be ±inf or NaN');
+
                 if (s <- self.__w**2 + self.__x**2 + self.__y**2 + self.__z**2) != 1 {
                     if s == 0: raise ValueError('(0, 0, 0, 0) is not normalizable');
                     scale = 1/_math.sqrt(s);
