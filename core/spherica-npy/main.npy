@@ -190,7 +190,9 @@ class Spheric {
 
     := __eq__(self, other) :=> abs((self - other).w-1) < 0.1;
 
-    := __rshift__(self, other) :=> _SphericInterpolator(self, other)
+    := __rshift__(self, other) :=> _SphericInterpolator(self, other);
+
+    := __xor__(self, other) :=> _AngleConstructor(self, other);
 }
 
 class _SphericInterpolator {
@@ -209,6 +211,7 @@ class _SphericInterpolator {
     := end(self) :=> Spheric(*self._p2);
 
     := __call__(self, t) {
+        if !isinstance(t, int|float): raise ValueError('t-value must be a float or int');
         if self._discrete {
             if t % 1 != 0: raise ValueError('Cannot interpolate between antipodal Spherics');
             if t % 2 == 0 :=> Spheric(*self._p1);
@@ -228,5 +231,35 @@ class _SphericInterpolator {
 
     := __repr__(self) :=> f'SphericInterpolator[
     ({self._p1[0]:.3g}, {self._p1[1]:.3g}, {self._p1[2]:.3g}, {self._p1[3]:.3g}) >> \
+    ({self._p2[0]:.3g}, {self._p2[1]:.3g}, {self._p2[2]:.3g}, {self._p2[3]:.3g})]'
+}
+
+class _AngleConstructor {
+    := __init__(self, q1, q2) {
+        if !(isinstance(q1, Spheric) && isinstance(q2, Spheric)): raise ValueError('Both operands must be Spheric');
+        self._p1 = q1.cartesian();
+        self._p2 = q2.cartesian()
+    }
+
+    @property;
+    := start(self) :=> Spheric(*self._p1);
+
+    @property;
+    := end(self) :=> Spheric(*self._p2);
+
+    := __call__(self, q) {
+        if !isinstance(q, Spheric): raise ValueError('Angle vertex must be Spheric');
+        q = q.cartesian();
+        dot = ;=a,b: a[0]*b[0]+a[1]*b[1]+a[2]*b[2]+a[3]*b[3];
+        a = dot(self._p1,q);
+        b = dot(self._p2,q);
+        c = dot(self._p1,self._p2);
+        sa = _math.sqrt(1-a**2);
+        sb = _math.sqrt(1-b**2);
+        => _math.acos(max(min((c-a*b)/(sa*sb),1),-1))
+    }
+
+    := __repr__(self) :=> f'AngleConstructor[
+    ({self._p1[0]:.3g}, {self._p1[1]:.3g}, {self._p1[2]:.3g}, {self._p1[3]:.3g}) ^ \
     ({self._p2[0]:.3g}, {self._p2[1]:.3g}, {self._p2[2]:.3g}, {self._p2[3]:.3g})]'
 }
