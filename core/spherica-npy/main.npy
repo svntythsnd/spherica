@@ -41,6 +41,7 @@ class Spheric {
             ? 4 {
                 self.__w, self.__x, self.__y, self.__z = args;
                 if (s <- self.__w**2 + self.__x**2 + self.__y**2 + self.__z**2) != 1 {
+                    if s == 0: raise ValueError('(0, 0, 0, 0) is not normalizable');
                     scale = 1/_math.sqrt(s);
                     self.__w *= scale;
                     self.__x *= scale;
@@ -130,7 +131,7 @@ class Spheric {
     := cartesian(self) :=> self.w, self.x, self.y, self.z;
 
     := __add__(self, other) {
-        if !isinstance(other, Spheric): raise ValueError('Both operands must be Spheric');
+        if !isinstance(other, Spheric): raise TypeError('Both operands must be Spheric');
         => Spheric (
             self.w * other.w - self.x * other.x - self.y * other.y - self.z * other.z,
             self.w * other.x + self.x * other.w + self.y * other.z - self.z * other.y,
@@ -152,30 +153,30 @@ class Spheric {
     := __sub__(self, other) :=> self + (-other);
 
     := __or__(self, other) {
-        if !isinstance(other, Spheric): raise ValueError('Both operands must be Spheric');
+        if !isinstance(other, Spheric): raise TypeError('Both operands must be Spheric');
         => _math.acos(self & other)
     }
 
     := __matmul__(self, fov) {
-        if !isinstance(fov, int|float): raise ValueError('FOV must be a float or int');
+        if !isinstance(fov, int|float): raise TypeError('FOV must be a float or int');
         scale = _math.tan(self.phi)/_math.tan(fov/2);
         => (_math.cos(self.psi)*scale,_math.sin(self.psi)*scale)
     }
 
     := __and__(self, other) {
-        if !isinstance(other, Spheric): raise ValueError('Both operands must be Spheric');
+        if !isinstance(other, Spheric): raise TypeError('Both operands must be Spheric');
         => max(min(self.w*other.w+self.x*other.x+self.y*other.y+self.z*other.z,1.),-1.)
     }
 
     := __mul__(self, k) :=> k*self;
 
     := __truediv__(self, k) {
-        if !isinstance(k, int|float): raise ValueError('Divisor must be a float or int');
+        if !isinstance(k, int|float): raise TypeError('Divisor must be a float or int');
         => 1/k*self
     }
 
     := __rmul__(self, k) {
-        if !isinstance(k, int|float): raise ValueError('Coefficient must be a float or int');
+        if !isinstance(k, int|float): raise TypeError('Coefficient must be a float or int');
         if (self.__t !=& None && self.__t == 0) || self.w == 1 :=> self;
         if (self.__t !=& None && self.__t == _math.pi) || self.w == -1 {
             if k % 1 != 0: raise ValueError('Cannot scale an antipodal Spheric');
@@ -205,7 +206,7 @@ class Spheric {
 
 class _SphericInterpolator {
     := __init__(self, q1, q2) {
-        if !(isinstance(q1, Spheric) && isinstance(q2, Spheric)): raise ValueError('Both operands must be Spheric');
+        if !(isinstance(q1, Spheric) && isinstance(q2, Spheric)): raise TypeError('Both operands must be Spheric');
         self.__p1 = q1.cartesian();
         self.__p2 = q2.cartesian();
         self.__angle = q1 | q2;
@@ -219,7 +220,7 @@ class _SphericInterpolator {
     := end(self) :=> Spheric(*self.__p2);
 
     := __call__(self, t) {
-        if !isinstance(t, int|float): raise ValueError('t-value must be a float or int');
+        if !isinstance(t, int|float): raise TypeError('t-value must be a float or int');
         if self.__discrete {
             if t % 1 != 0: raise ValueError('Cannot interpolate between antipodal Spherics');
             if t % 2 == 0 :=> Spheric(*self.__p1);
@@ -244,7 +245,7 @@ class _SphericInterpolator {
 
 class _AngleConstructor {
     := __init__(self, q1, q2) {
-        if !(isinstance(q1, Spheric) && isinstance(q2, Spheric)): raise ValueError('Both operands must be Spheric');
+        if !(isinstance(q1, Spheric) && isinstance(q2, Spheric)): raise TypeError('Both operands must be Spheric');
         self.__dot = q1 & q2;
         self.__eq = self.__dot == 1;
         self.__p1 = q1.cartesian();
@@ -258,7 +259,7 @@ class _AngleConstructor {
     := end(self) :=> Spheric(*self.__p2);
 
     := __call__(self, q) {
-        if !isinstance(q, Spheric): raise ValueError('Angle vertex must be Spheric');
+        if !isinstance(q, Spheric): raise TypeError('Angle vertex must be Spheric');
         if self.__eq :=> .0;
         q = q.cartesian();
         dot = ;=a,b: a[0]*b[0]+a[1]*b[1]+a[2]*b[2]+a[3]*b[3];
