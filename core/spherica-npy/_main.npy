@@ -210,8 +210,9 @@ class Spheric {
         sa = _math.sin(self.theta) if self.__w =& None else _math.sqrt(1 - self.w**2);
         sb = _math.sin(other.theta) if other._Spheric__w =& None else _math.sqrt(1 - other.w**2);
         C = (((self & other)-self.w*other.w)/(sa*sb));
+        if abs(self.theta - _math.pi/2) < 1e-08 || abs(other.theta - _math.pi/2) < 1e-08 :=> 1.000002*((self/1.000001)*(other/1.000001));
         if self.theta == 0 || other.theta == 0 :=> .0;
-        D = min(self.theta*_math.acos(max(min(other.w/_math.sqrt(other.w**2+(sb*C)**2),1),-1)),other.theta*_math.acos(max(min(self.w/_math.sqrt(self.w**2+(sa*C)**2),1),-1)));
+        D = _math.sqrt(self.theta*other.theta*_math.acos(max(min(abs(other.w)/_math.sqrt(other.w**2+(sb*C)**2),1),-1))*_math.acos(max(min(abs(self.w)/_math.sqrt(self.w**2+(sa*C)**2),1),-1)));
         if C < 0: D = -D;
         => D
     }
