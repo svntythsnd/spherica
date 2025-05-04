@@ -10,10 +10,9 @@ class Spheric:
   self.__t = self.__p = self.__s = self.__w = self.__x = self.__y = self.__z = None
   match len(args):
    case 3:
-    for i in args:
-     if not isinstance(i, int|float): raise TypeError('Angles must be numerical')
-     if _math.isnan(i) or _math.isinf(i): raise ValueError('Angles cannot be ±inf or NaN')
-     
+    for n, i in enumerate(args):
+     if not isinstance(i, int|float): raise TypeError(f'Angles must be numerical, but got {["θ","φ","ψ"][n]} of type \'{type(i).__name__}\'')
+     if _math.isnan(i) or _math.isinf(i): raise ValueError(f'Angles cannot be ±inf or NaN, but got {["θ","φ","ψ"][n]} = {i}')
     self.__t = args[0]
     t_rolled = (self.__t/_math.pi % 2 >= 1)
     self.__t %= _math.pi
@@ -36,10 +35,9 @@ class Spheric:
     if p_rolled: self.__s += _math.pi
     self.__s %= 2*_math.pi
    case 4:
-    for i in args:
-     if not isinstance(i, int|float): raise TypeError('Coordinates must be numerical')
-     if _math.isnan(i) or _math.isinf(i): raise ValueError('Coordinates cannot be ±inf or NaN')
-     
+    for n, i in enumerate(args):
+     if not isinstance(i, int|float): raise TypeError(f'Coordinates must be numerical, but got {["w","x","y","z"][n]} of type \'{type(i).__name__}\'')
+     if _math.isnan(i) or _math.isinf(i): raise ValueError(f'Coordinates cannot be ±inf or NaN, but got {["w","x","y","z"][n]} = {i}')
     self.__w, self.__x, self.__y, self.__z = args
     if (s := self.__w**2 + self.__x**2 + self.__y**2 + self.__z**2) != 1:
      if s == 0: raise ValueError('(0, 0, 0, 0) is not normalizable')
@@ -117,7 +115,7 @@ class Spheric:
     
    
   elif format_spec == '' : return f'{self:.3ga}'
-  raise ValueError('Invalid format specifier')
+  raise ValueError(f'Invalid format specifier')
  def angles(self) : return self.theta, self.phi, self.psi
  def cartesian(self) : return self.w, self.x, self.y, self.z
  def __add__(self, other):
