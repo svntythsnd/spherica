@@ -111,7 +111,10 @@ class Spheric:
    match format_spec[-1]:
     case 'c' : return f'Spheric({{:{digits}{type}}}, {{:{digits}{type}}}, {{:{digits}{type}}}, {{:{digits}{type}}})'.format(self.w, self.x, self.y, self.z)
     case 'a' : return f'Spheric({{:{digits}{type}}}, {{:{digits}{type}}}, {{:{digits}{type}}})'.format(self.theta, self.phi, self.psi)
-    case _ : return f'Spheric({{:{digits}{type}}}π, {{:{digits}{type}}}π, {{:{digits}{type}}}π)'.format(self.theta/_math.pi, self.phi/_math.pi, self.psi/_math.pi)
+    case _:
+     scale = 1/_math.pi
+     return f'Spheric({{:{digits}{type}}}π, {{:{digits}{type}}}π, {{:{digits}{type}}}π)'.format(self.theta*scale, self.phi*scale, self.psi*scale)
+    
    
   return f'{self:.3ga}'
  def angles(self) : return self.theta, self.phi, self.psi
@@ -137,7 +140,13 @@ class Spheric:
  def __and__(self, other):
   if not isinstance(other, Spheric) : return NotImplemented
   return max(min(self.w*other.w+self.x*other.x+self.y*other.y+self.z*other.z,1.),-1.)
- def __mul__(self, k) : return k*self
+ def __mul__(self, other):
+  if isinstance(other, int|float) : return other*self
+  if not isinstance(other, Spheric) : return NotImplemented
+  dot = self & other
+  if dot == 0 : return self.theta*other.theta
+  if self.theta == 0 or other.theta == 0 : return .0
+  return self.theta*other.theta*max(min((dot-self.w*other.w)/(_math.sin(self.theta)*_math.sin(other.theta)),1),-1)
  def __truediv__(self, k):
   if not isinstance(k, int|float) : return NotImplemented
   return 1/k*self
@@ -165,48 +174,42 @@ class Spheric:
  
 class _SphericInterpolator:
  def __init__(self, q1, q2):
-  self.__p1 = q1.cartesian()
-  self.__p2 = q2.cartesian()
-  self.__angle = q1 | q2
-  self.__discrete = self.__angle == _math.pi
- @property
- def start(self) : return Spheric(*self.__p1)
- @property
- def end(self) : return Spheric(*self.__p2)
+  self.start = q1
+  self.end = q2
+  self.distance = q1 | q2
+  self.__discrete = self.distance == _math.pi
  def __call__(self, t):
   if not isinstance(t, int|float): raise TypeError('t-value must be numerical')
   if self.__discrete:
    if t % 1 != 0: raise ValueError('Cannot interpolate between antipodal Spherics')
-   if t % 2 == 0 : return Spheric(*self.__p1)
-   return Spheric(*self.__p2)
-  if self.__angle == 0 : return Spheric(*self.__p1)
-  c = 1/_math.sin(self.__angle)
-  o = _math.sin(t*self.__angle)*c
-  s = _math.sin((1-t)*self.__angle)*c
-  return Spheric(self.__p1[0]*s+self.__p2[0]*o,self.__p1[1]*s+self.__p2[1]*o,self.__p1[2]*s+self.__p2[2]*o,self.__p1[3]*s+self.__p2[3]*o)
- def __repr__(self) : return f'SphericInterpolator[({self.__p1[0]:.3g}, {self.__p1[1]:.3g}, {self.__p1[2]:.3g}, {self.__p1[3]:.3g}) >> ({self.__p2[0]:.3g}, {self.__p2[1]:.3g}, {self.__p2[2]:.3g}, {self.__p2[3]:.3g})]'
+   if t % 2 == 0 : return self.start
+   return self.end
+  if self.distance == 0 : return self.start
+  c = 1/_math.sin(self.distance)
+  o = _math.sin(t*self.distance)*c
+  s = _math.sin((1-t)*self.distance)*c
+  p1 = self.start.cartesian()
+  p2 = self.end.cartesian()
+  return Spheric(p1[0]*s+p2[0]*o,p1[1]*s+p2[1]*o,p1[2]*s+p2[2]*o,p1[3]*s+p2[3]*o)
+ def __format__(self, format_spec) : return f'SphericInterpolator[({f"{{:{format_spec}}}".format(self.start)[8:-1]}) >> ({f"{{:{format_spec}}}".format(self.end)[8:-1]})]'
+ def __repr__(self) : return f'{self}'
 class _AngleConstructor:
  def __init__(self, q1, q2):
   if not (isinstance(q1, Spheric) and isinstance(q2, Spheric)): raise TypeError('Both operands must be Spheric')
   self.__dot = q1 & q2
   self.__eq = self.__dot == 1
-  self.__p1 = q1.cartesian()
-  self.__p2 = q2.cartesian()
- @property
- def start(self) : return Spheric(*self.__p1)
- @property
- def end(self) : return Spheric(*self.__p2)
+  self.endpoints = (q1, q2)
+  
  def __call__(self, q):
   if not isinstance(q, Spheric): raise TypeError('Angle vertex must be Spheric')
   if self.__eq : return .0
-  q = q.cartesian()
-  dot = lambda a,b: a[0]*b[0]+a[1]*b[1]+a[2]*b[2]+a[3]*b[3]
-  a = dot(self.__p1,q)
-  b = dot(self.__p2,q)
+  a = self.endpoints[0] & q
+  b = self.endpoints[1] & q
   sa = _math.sqrt(1-a**2)
   sb = _math.sqrt(1-b**2)
   S = sa*sb
   if S == 0: raise ValueError('Angle vertex cannot be equal to endpoint')
   return _math.acos(max(min((self.__dot-a*b)/S,1.),-1.))
- def __repr__(self) : return f'AngleConstructor[({self.__p1[0]:.3g}, {self.__p1[1]:.3g}, {self.__p1[2]:.3g}, {self.__p1[3]:.3g}) ^ ({self.__p2[0]:.3g}, {self.__p2[1]:.3g}, {self.__p2[2]:.3g}, {self.__p2[3]:.3g})]'
+ def __format__(self, format_spec) : return f'AngleConstructor[({f"{{:{format_spec}}}".format(self.endpoints[0])[8:-1]}) ^ ({f"{{:{format_spec}}}".format(self.endpoints[1])[8:-1]})]'
+ def __repr__(self) : return f'{self}'
 
