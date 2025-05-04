@@ -116,7 +116,8 @@ class Spheric:
      return f'Spheric({{:{digits}{type}}}π, {{:{digits}{type}}}π, {{:{digits}{type}}}π)'.format(self.theta*scale, self.phi*scale, self.psi*scale)
     
    
-  return f'{self:.3ga}'
+  elif format_spec == '' : return f'{self:.3ga}'
+  raise ValueError('Invalid format specifier')
  def angles(self) : return self.theta, self.phi, self.psi
  def cartesian(self) : return self.w, self.x, self.y, self.z
  def __add__(self, other):

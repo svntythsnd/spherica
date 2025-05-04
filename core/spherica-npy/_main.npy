@@ -158,8 +158,8 @@ class Spheric {
                         .format(self.theta*scale, self.phi*scale, self.psi*scale)
                 }
             }
-        }
-        => f'{self:.3ga}'
+        } elif format_spec == '' :=> f'{self:.3ga}';
+        raise ValueError('Invalid format specifier')
     }
 
     := angles(self) :=> self.theta, self.phi, self.psi;
