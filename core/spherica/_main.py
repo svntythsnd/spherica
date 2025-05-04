@@ -144,10 +144,11 @@ class Spheric:
  def __mul__(self, other):
   if isinstance(other, int|float) : return other*self
   if not isinstance(other, Spheric) : return NotImplemented
-  dot = self & other
-  if dot == 0 : return self.theta*other.theta
+  sa = _math.sin(self.theta) if self.__w is None else _math.sqrt(1 - self.w**2)
+  sb = _math.sin(other.theta) if other._Spheric__w is None else _math.sqrt(1 - other.w**2)
+  C = (((self & other)-self.w*other.w)/(sa*sb))
   if self.theta == 0 or other.theta == 0 : return .0
-  return self.theta*other.theta*max(min((dot-self.w*other.w)/(_math.sin(self.theta)*_math.sin(other.theta)),1),-1)
+  return self.theta*_math.acos(max(min(other.w/_math.sqrt(other.w**2+(sb*C)**2),1),-1))
  def __truediv__(self, k):
   if not isinstance(k, int|float) : return NotImplemented
   return 1/k*self
