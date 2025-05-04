@@ -95,7 +95,7 @@ class Spheric {
     @property;
     := psi(self) {
         if self.__s =& None {
-            if (self.__p !=& None && self.__p % _math.pi == 0): self.__s = 0;
+            if self.__p !=& None && self.__p % _math.pi == 0: self.__s = 0;
             else: self.__s = _math.atan2(self.__z,self.__y)
         }
         self.__s %= 2*_math.pi;
@@ -145,16 +145,16 @@ class Spheric {
 
     := __format__(self, format_spec) {
         if re.match(r'^(.\d+)?[GgFf][cAa]$', format_spec) {
-            type = format_spec[-2];
+            form = format_spec[-2];
             digits = format_spec[:-2];
             match format_spec[-1] {
-                ? 'c' :=> f'Spheric({{:{digits}{type}}}, {{:{digits}{type}}}, {{:{digits}{type}}}, {{:{digits}{type}}})'
+                ? 'c' :=> f'Spheric({{:{digits}{form}}}, {{:{digits}{form}}}, {{:{digits}{form}}}, {{:{digits}{form}}})'
                           .format(self.w, self.x, self.y, self.z);
-                ? 'a' :=> f'Spheric({{:{digits}{type}}}, {{:{digits}{type}}}, {{:{digits}{type}}})'
+                ? 'a' :=> f'Spheric({{:{digits}{form}}}, {{:{digits}{form}}}, {{:{digits}{form}}})'
                           .format(self.theta, self.phi, self.psi);
                 ? _ {
                     scale = 1/_math.pi;
-                    => f'Spheric({{:{digits}{type}}}π, {{:{digits}{type}}}π, {{:{digits}{type}}}π)'
+                    => f'Spheric({{:{digits}{form}}}π, {{:{digits}{form}}}π, {{:{digits}{form}}}π)'
                         .format(self.theta*scale, self.phi*scale, self.psi*scale)
                 }
             }
@@ -190,31 +190,19 @@ class Spheric {
 
     := __or__(self, other) {
         if !isinstance(other, Spheric) :=> NotImplemented;;
-        => _math.acos(self & other)
+        => _math.acos(self * other)
     }
 
     := __matmul__(self, fov) {
         if !isinstance(fov, int|float) :=> NotImplemented;
         scale = _math.tan(self.phi)/_math.tan(fov/2);
-        => (_math.cos(self.psi)*scale,_math.sin(self.psi)*scale)
-    }
-
-    := __and__(self, other) {
-        if !isinstance(other, Spheric) :=> NotImplemented;
-        => max(min(self.w*other.w+self.x*other.x+self.y*other.y+self.z*other.z,1.),-1.)
+        => _math.cos(self.psi)*scale, _math.sin(self.psi)*scale
     }
 
     := __mul__(self, other) {
         if isinstance(other, int|float) :=> other*self;
         if !isinstance(other, Spheric) :=> NotImplemented;
-        sa = _math.sin(self.theta) if self.__w =& None else _math.sqrt(1 - self.w**2);
-        sb = _math.sin(other.theta) if other._Spheric__w =& None else _math.sqrt(1 - other.w**2);
-        C = (((self & other)-self.w*other.w)/(sa*sb));
-        if abs(self.theta - _math.pi/2) < 1e-08 || abs(other.theta - _math.pi/2) < 1e-08 :=> 1.000002*((self/1.000001)*(other/1.000001));
-        if self.theta == 0 || other.theta == 0 :=> .0;
-        D = _math.sqrt(self.theta*other.theta*_math.acos(max(min(abs(other.w)/_math.sqrt(other.w**2+(sb*C)**2),1),-1))*_math.acos(max(min(abs(self.w)/_math.sqrt(self.w**2+(sa*C)**2),1),-1)));
-        if C < 0: D = -D;
-        => D
+        => max(min(self.w*other.w+self.x*other.x+self.y*other.y+self.z*other.z,1.),-1.)
     }
 
     := __truediv__(self, k) {
@@ -244,7 +232,7 @@ class Spheric {
 
     := __abs__(self) :=> self.theta;
 
-    := __eq__(self, other) :=> self & other == 1;
+    := __eq__(self, other) :=> self * other == 1;
 
     := __rshift__(self, other) {
         if !(isinstance(self, Spheric) && isinstance(other, Spheric)) :=> NotImplemented;
@@ -296,7 +284,7 @@ class _SphericInterpolator {
 class _AngleConstructor {
     := __init__(self, q1, q2) {
         if !(isinstance(q1, Spheric) && isinstance(q2, Spheric)): raise TypeError('Both operands must be Spheric');
-        self.__dot = q1 & q2;
+        self.__dot = q1 * q2;
         self.__eq = self.__dot == 1;
         self.endpoints = (q1, q2);
     }
@@ -304,8 +292,8 @@ class _AngleConstructor {
     := __call__(self, q) {
         if !isinstance(q, Spheric): raise TypeError('Angle vertex must be Spheric');
         if self.__eq :=> .0;
-        a = self.endpoints[0] & q;
-        b = self.endpoints[1] & q;
+        a = self.endpoints[0] * q;
+        b = self.endpoints[1] * q;
         sa = _math.sqrt(1-a**2);
         sb = _math.sqrt(1-b**2);
         S = sa*sb;

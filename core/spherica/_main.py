@@ -71,7 +71,7 @@ class Spheric:
  @property
  def psi(self):
   if self.__s is None:
-   if (self.__p is not None and self.__p % _math.pi == 0): self.__s = 0
+   if self.__p is not None and self.__p % _math.pi == 0: self.__s = 0
    else: self.__s = _math.atan2(self.__z,self.__y)
   self.__s %= 2*_math.pi
   return self.__s
@@ -104,14 +104,14 @@ class Spheric:
  def __repr__(self) : return f'{self}'
  def __format__(self, format_spec):
   if re.match(r'^(.\d+)?[GgFf][cAa]$', format_spec):
-   type = format_spec[-2]
+   form = format_spec[-2]
    digits = format_spec[:-2]
    match format_spec[-1]:
-    case 'c' : return f'Spheric({{:{digits}{type}}}, {{:{digits}{type}}}, {{:{digits}{type}}}, {{:{digits}{type}}})'.format(self.w, self.x, self.y, self.z)
-    case 'a' : return f'Spheric({{:{digits}{type}}}, {{:{digits}{type}}}, {{:{digits}{type}}})'.format(self.theta, self.phi, self.psi)
+    case 'c' : return f'Spheric({{:{digits}{form}}}, {{:{digits}{form}}}, {{:{digits}{form}}}, {{:{digits}{form}}})'.format(self.w, self.x, self.y, self.z)
+    case 'a' : return f'Spheric({{:{digits}{form}}}, {{:{digits}{form}}}, {{:{digits}{form}}})'.format(self.theta, self.phi, self.psi)
     case _:
      scale = 1/_math.pi
-     return f'Spheric({{:{digits}{type}}}π, {{:{digits}{type}}}π, {{:{digits}{type}}}π)'.format(self.theta*scale, self.phi*scale, self.psi*scale)
+     return f'Spheric({{:{digits}{form}}}π, {{:{digits}{form}}}π, {{:{digits}{form}}}π)'.format(self.theta*scale, self.phi*scale, self.psi*scale)
     
    
   elif format_spec == '' : return f'{self:.3ga}'
@@ -131,25 +131,15 @@ class Spheric:
  def __or__(self, other):
   if not isinstance(other, Spheric) : return NotImplemented
   
-  return _math.acos(self & other)
+  return _math.acos(self * other)
  def __matmul__(self, fov):
   if not isinstance(fov, int|float) : return NotImplemented
   scale = _math.tan(self.phi)/_math.tan(fov/2)
-  return (_math.cos(self.psi)*scale,_math.sin(self.psi)*scale)
- def __and__(self, other):
-  if not isinstance(other, Spheric) : return NotImplemented
-  return max(min(self.w*other.w+self.x*other.x+self.y*other.y+self.z*other.z,1.),-1.)
+  return _math.cos(self.psi)*scale, _math.sin(self.psi)*scale
  def __mul__(self, other):
   if isinstance(other, int|float) : return other*self
   if not isinstance(other, Spheric) : return NotImplemented
-  sa = _math.sin(self.theta) if self.__w is None else _math.sqrt(1 - self.w**2)
-  sb = _math.sin(other.theta) if other._Spheric__w is None else _math.sqrt(1 - other.w**2)
-  C = (((self & other)-self.w*other.w)/(sa*sb))
-  if abs(self.theta - _math.pi/2) < 1e-08 or abs(other.theta - _math.pi/2) < 1e-08 : return 1.000002*((self/1.000001)*(other/1.000001))
-  if self.theta == 0 or other.theta == 0 : return .0
-  D = _math.sqrt(self.theta*other.theta*_math.acos(max(min(abs(other.w)/_math.sqrt(other.w**2+(sb*C)**2),1),-1))*_math.acos(max(min(abs(self.w)/_math.sqrt(self.w**2+(sa*C)**2),1),-1)))
-  if C < 0: D = -D
-  return D
+  return max(min(self.w*other.w+self.x*other.x+self.y*other.y+self.z*other.z,1.),-1.)
  def __truediv__(self, k):
   if not isinstance(k, int|float) : return NotImplemented
   return 1/k*self
@@ -166,7 +156,7 @@ class Spheric:
    return Spheric(_math.sin((1-k)*self.theta)*c+self.w*s,self.x*s,self.y*s,self.z*s)
   else : return Spheric(self.theta * k,self.phi,self.psi)
  def __abs__(self) : return self.theta
- def __eq__(self, other) : return self & other == 1
+ def __eq__(self, other) : return self * other == 1
  def __rshift__(self, other):
   if not (isinstance(self, Spheric) and isinstance(other, Spheric)) : return NotImplemented
   return _SphericInterpolator(self, other)
@@ -199,15 +189,15 @@ class _SphericInterpolator:
 class _AngleConstructor:
  def __init__(self, q1, q2):
   if not (isinstance(q1, Spheric) and isinstance(q2, Spheric)): raise TypeError('Both operands must be Spheric')
-  self.__dot = q1 & q2
+  self.__dot = q1 * q2
   self.__eq = self.__dot == 1
   self.endpoints = (q1, q2)
   
  def __call__(self, q):
   if not isinstance(q, Spheric): raise TypeError('Angle vertex must be Spheric')
   if self.__eq : return .0
-  a = self.endpoints[0] & q
-  b = self.endpoints[1] & q
+  a = self.endpoints[0] * q
+  b = self.endpoints[1] * q
   sa = _math.sqrt(1-a**2)
   sb = _math.sqrt(1-b**2)
   S = sa*sb
