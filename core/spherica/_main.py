@@ -2,7 +2,7 @@ import math as _math
 import re
 from copy import copy as _copy
 class Spheric:
- def __init__(self, *args):
+ def __init__(self, *args: int|float):
   if args == (0,):
    self.__t = self.__p = self.__s = self.__x = self.__y = self.__z = .0
    self.__w = 1.
@@ -57,10 +57,7 @@ class Spheric:
   if self.__t is None: self.__t = _math.acos(max(min(self.__w,1),-1))
   return self.__t
  @theta.setter
- def theta(self, val):
-  a = list(self.angles())
-  a[0] = val
-  self.__init__(*a)
+ def theta(self, val): self.__init__(val, self.phi, self.psi)
  @property
  def phi(self):
   if self.__p is None:
@@ -72,10 +69,7 @@ class Spheric:
    
   return self.__p
  @phi.setter
- def phi(self, val):
-  a = list(self.angles())
-  a[1] = val
-  self.__init__(*a)
+ def phi(self, val): self.__init__(self.theta, val, self.psi)
  @property
  def psi(self):
   if self.__s is None:
@@ -84,46 +78,31 @@ class Spheric:
   self.__s %= 2*_math.pi
   return self.__s
  @psi.setter
- def psi(self, val):
-  a = list(self.angles())
-  a[2] = val
-  self.__init__(*a)
+ def psi(self, val): self.__init__(self.theta, self.phi, val)
  @property
  def w(self):
   if self.__w is None: self.__w = _math.cos(self.__t)
   return self.__w
  @w.setter
- def w(self, val):
-  c = list(self.cartesian())
-  c[0] = val
-  self.__init__(*c)
+ def w(self, val): self.__init__(val, self.x, self.y, self.z)
  @property
  def x(self):
   if self.__x is None: self.__x = _math.sin(self.__t)*_math.cos(self.__p)
   return self.__x
  @x.setter
- def x(self, val):
-  c = list(self.cartesian())
-  c[1] = val
-  self.__init__(*c)
+ def x(self, val): self.__init__(self.w, val, self.y, self.z)
  @property
  def y(self):
   if self.__y is None: self.__y = _math.sin(self.__t)*_math.sin(self.__p)*_math.cos(self.__s)
   return self.__y
  @y.setter
- def y(self, val):
-  c = list(self.cartesian())
-  c[2] = val
-  self.__init__(*c)
+ def y(self, val): self.__init__(self.w, self.x, val, self.z)
  @property
  def z(self):
   if self.__z is None: self.__z = _math.sin(self.__t)*_math.sin(self.__p)*_math.sin(self.__s)
   return self.__z
  @z.setter
- def z(self, val):
-  c = list(self.cartesian())
-  c[3] = val
-  self.__init__(*c)
+ def z(self, val): self.__init__(self.w, self.x, self.z, val)
  def __repr__(self) : return f'{self}'
  def __format__(self, format_spec):
   if re.match(r'^(.\d+)?[GgFf][cAa]$', format_spec):
@@ -138,7 +117,7 @@ class Spheric:
  def angles(self) : return self.theta, self.phi, self.psi
  def cartesian(self) : return self.w, self.x, self.y, self.z
  def __add__(self, other):
-  if not isinstance(other, Spheric): raise TypeError('Both operands must be Spheric')
+  if not isinstance(other, Spheric) : return NotImplemented
   return Spheric (self.w * other.w - self.x * other.x - self.y * other.y - self.z * other.z,self.w * other.x + self.x * other.w + self.y * other.z - self.z * other.y,self.w * other.y - self.x * other.z + self.y * other.w + self.z * other.x,self.w * other.z + self.x * other.y - self.y * other.x + self.z * other.w)
  def __neg__(self):
   if self.__use_c() : return Spheric(self.w, -self.x, -self.y, -self.z)
@@ -148,21 +127,22 @@ class Spheric:
   return Spheric(_math.pi-self.theta, _math.pi-self.phi, self.psi+_math.pi)
  def __sub__(self, other) : return self + (-other)
  def __or__(self, other):
-  if not isinstance(other, Spheric): raise TypeError('Both operands must be Spheric')
+  if not isinstance(other, Spheric) : return NotImplemented
+  
   return _math.acos(self & other)
  def __matmul__(self, fov):
-  if not isinstance(fov, int|float): raise TypeError('FOV must be numerical')
+  if not isinstance(fov, int|float) : return NotImplemented
   scale = _math.tan(self.phi)/_math.tan(fov/2)
   return (_math.cos(self.psi)*scale,_math.sin(self.psi)*scale)
  def __and__(self, other):
-  if not isinstance(other, Spheric): raise TypeError('Both operands must be Spheric')
+  if not isinstance(other, Spheric) : return NotImplemented
   return max(min(self.w*other.w+self.x*other.x+self.y*other.y+self.z*other.z,1.),-1.)
  def __mul__(self, k) : return k*self
  def __truediv__(self, k):
-  if not isinstance(k, int|float): raise TypeError('Divisor must be numerical')
+  if not isinstance(k, int|float) : return NotImplemented
   return 1/k*self
  def __rmul__(self, k):
-  if not isinstance(k, int|float): raise TypeError('Coefficient must be numerical')
+  if not isinstance(k, int|float) : return NotImplemented
   if (self.__t is not None and self.__t == 0) or self.w == 1 : return self
   if (self.__t is not None and self.__t == _math.pi) or self.w == -1:
    if k % 1 != 0: raise ValueError('Cannot scale an antipodal Spheric')
@@ -175,13 +155,16 @@ class Spheric:
   else : return Spheric(self.theta * k,self.phi,self.psi)
  def __abs__(self) : return self.theta
  def __eq__(self, other) : return self & other == 1
- def __rshift__(self, other) : return _SphericInterpolator(self, other)
- def __xor__(self, other) : return _AngleConstructor(self, other)
+ def __rshift__(self, other):
+  if not (isinstance(self, Spheric) and isinstance(other, Spheric)) : return NotImplemented
+  return _SphericInterpolator(self, other)
+ def __xor__(self, other):
+  if not (isinstance(self, Spheric) and isinstance(other, Spheric)) : return NotImplemented
+  return _AngleConstructor(self, other)
  def __pos__(self) : return _copy(self)
  
 class _SphericInterpolator:
  def __init__(self, q1, q2):
-  if not (isinstance(q1, Spheric) and isinstance(q2, Spheric)): raise TypeError('Both operands must be Spheric')
   self.__p1 = q1.cartesian()
   self.__p2 = q2.cartesian()
   self.__angle = q1 | q2

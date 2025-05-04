@@ -3,7 +3,7 @@ import re;
 from copy import copy as _copy;
 
 class Spheric {
-    := __init__(self, *args) {
+    := __init__(self, *args: int|float) {
         if args == (0,) {
             self.__t = self.__p = self.__s = self.__x = self.__y = self.__z = .0;
             self.__w = 1.;
@@ -74,11 +74,7 @@ class Spheric {
     }
 
     @theta.setter;
-    := theta(self, val) {
-        a = list(self.angles());
-        a[0] = val;
-        self.__init__(*a)
-    }
+    := theta(self, val): self.__init__(val, self.phi, self.psi);
 
     @property;
     := phi(self) {
@@ -94,11 +90,7 @@ class Spheric {
     }
 
     @phi.setter;
-    := phi(self, val) {
-        a = list(self.angles());
-        a[1] = val;
-        self.__init__(*a)
-    }
+    := phi(self, val): self.__init__(self.theta, val, self.psi);
 
     @property;
     := psi(self) {
@@ -111,11 +103,7 @@ class Spheric {
     }
 
     @psi.setter;
-    := psi(self, val) {
-        a = list(self.angles());
-        a[2] = val;
-        self.__init__(*a)
-    }
+    := psi(self, val): self.__init__(self.theta, self.phi, val);
 
     @property;
     := w(self) {
@@ -124,11 +112,7 @@ class Spheric {
     }
 
     @w.setter;
-    := w(self, val) {
-        c = list(self.cartesian());
-        c[0] = val;
-        self.__init__(*c)
-    }
+    := w(self, val): self.__init__(val, self.x, self.y, self.z);
 
     @property;
     := x(self) {
@@ -137,11 +121,7 @@ class Spheric {
     }
 
     @x.setter;
-    := x(self, val) {
-        c = list(self.cartesian());
-        c[1] = val;
-        self.__init__(*c)
-    }
+    := x(self, val): self.__init__(self.w, val, self.y, self.z);
 
     @property;
     := y(self) {
@@ -150,11 +130,7 @@ class Spheric {
     }
 
     @y.setter;
-    := y(self, val) {
-        c = list(self.cartesian());
-        c[2] = val;
-        self.__init__(*c)
-    }
+    := y(self, val): self.__init__(self.w, self.x, val, self.z);
 
     @property;
     := z(self) {
@@ -163,11 +139,7 @@ class Spheric {
     }
 
     @z.setter;
-    := z(self, val) {
-        c = list(self.cartesian());
-        c[3] = val;
-        self.__init__(*c)
-    }
+    := z(self, val): self.__init__(self.w, self.x, self.z, val);
 
     := __repr__(self) :=> f'{self}';
 
@@ -192,7 +164,7 @@ class Spheric {
     := cartesian(self) :=> self.w, self.x, self.y, self.z;
 
     := __add__(self, other) {
-        if !isinstance(other, Spheric): raise TypeError('Both operands must be Spheric');
+        if !isinstance(other, Spheric) :=> NotImplemented;
         => Spheric (
             self.w * other.w - self.x * other.x - self.y * other.y - self.z * other.z,
             self.w * other.x + self.x * other.w + self.y * other.z - self.z * other.y,
@@ -214,30 +186,30 @@ class Spheric {
     := __sub__(self, other) :=> self + (-other);
 
     := __or__(self, other) {
-        if !isinstance(other, Spheric): raise TypeError('Both operands must be Spheric');
+        if !isinstance(other, Spheric) :=> NotImplemented;;
         => _math.acos(self & other)
     }
 
     := __matmul__(self, fov) {
-        if !isinstance(fov, int|float): raise TypeError('FOV must be numerical');
+        if !isinstance(fov, int|float) :=> NotImplemented;
         scale = _math.tan(self.phi)/_math.tan(fov/2);
         => (_math.cos(self.psi)*scale,_math.sin(self.psi)*scale)
     }
 
     := __and__(self, other) {
-        if !isinstance(other, Spheric): raise TypeError('Both operands must be Spheric');
+        if !isinstance(other, Spheric) :=> NotImplemented;
         => max(min(self.w*other.w+self.x*other.x+self.y*other.y+self.z*other.z,1.),-1.)
     }
 
     := __mul__(self, k) :=> k*self;
 
     := __truediv__(self, k) {
-        if !isinstance(k, int|float): raise TypeError('Divisor must be numerical');
+        if !isinstance(k, int|float) :=> NotImplemented;
         => 1/k*self
     }
 
     := __rmul__(self, k) {
-        if !isinstance(k, int|float): raise TypeError('Coefficient must be numerical');
+        if !isinstance(k, int|float) :=> NotImplemented;
         if (self.__t !=& None && self.__t == 0) || self.w == 1 :=> self;
         if (self.__t !=& None && self.__t == _math.pi) || self.w == -1 {
             if k % 1 != 0: raise ValueError('Cannot scale an antipodal Spheric');
@@ -260,16 +232,21 @@ class Spheric {
 
     := __eq__(self, other) :=> self & other == 1;
 
-    := __rshift__(self, other) :=> _SphericInterpolator(self, other);
+    := __rshift__(self, other) {
+        if !(isinstance(self, Spheric) && isinstance(other, Spheric)) :=> NotImplemented;
+        => _SphericInterpolator(self, other)
+    }
 
-    := __xor__(self, other) :=> _AngleConstructor(self, other);
+    := __xor__(self, other) {
+        if !(isinstance(self, Spheric) && isinstance(other, Spheric)) :=> NotImplemented;
+        => _AngleConstructor(self, other)
+    }
 
     := __pos__(self) :=> _copy(self);
 }
 
 class _SphericInterpolator {
     := __init__(self, q1, q2) {
-        if !(isinstance(q1, Spheric) && isinstance(q2, Spheric)): raise TypeError('Both operands must be Spheric');
         self.__p1 = q1.cartesian();
         self.__p2 = q2.cartesian();
         self.__angle = q1 | q2;
