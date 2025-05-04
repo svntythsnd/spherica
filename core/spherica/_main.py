@@ -146,7 +146,9 @@ class Spheric:
   sb = _math.sin(other.theta) if other._Spheric__w is None else _math.sqrt(1 - other.w**2)
   C = (((self & other)-self.w*other.w)/(sa*sb))
   if self.theta == 0 or other.theta == 0 : return .0
-  return self.theta*_math.acos(max(min(other.w/_math.sqrt(other.w**2+(sb*C)**2),1),-1))
+  D = min(self.theta*_math.acos(max(min(other.w/_math.sqrt(other.w**2+(sb*C)**2),1),-1)),other.theta*_math.acos(max(min(self.w/_math.sqrt(self.w**2+(sa*C)**2),1),-1)))
+  if C < 0: D = -D
+  return D
  def __truediv__(self, k):
   if not isinstance(k, int|float) : return NotImplemented
   return 1/k*self
