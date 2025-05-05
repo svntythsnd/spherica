@@ -1,5 +1,4 @@
 import math as _math
-import re
 from copy import copy as _copy
 class Spheric:
  def __init__(self, *args: int|float):
@@ -103,18 +102,16 @@ class Spheric:
  def z(self, val): self.__init__(self.w, self.x, self.z, val)
  def __repr__(self) : return f'{self}'
  def __format__(self, format_spec):
-  if re.match(r'^(.\d+)?[GgFf]?[cAa]?$', format_spec):
-   floatform = '.3g' if ((s := format_spec.rstrip('cAa')) == '') else s
-   style = s if len(format_spec) != 0 and ((s := format_spec[-1]) in 'cAa') else 'a'
-   match style:
-    case 'c' : return f'Spheric({{:{floatform}}}, {{:{floatform}}}, {{:{floatform}}}, {{:{floatform}}})'.format(self.w, self.x, self.y, self.z)
-    case 'a' : return f'Spheric({{:{floatform}}}, {{:{floatform}}}, {{:{floatform}}})'.format(self.theta, self.phi, self.psi)
-    case _:
-     scale = 1/_math.pi
-     return f'Spheric({{:{floatform}}}π, {{:{floatform}}}π, {{:{floatform}}}π)'.format(self.theta*scale, self.phi*scale, self.psi*scale)
-    
+  floatform = '.3g' if ((s := format_spec.rstrip('cAa')) == '') else s
+  style = s if len(format_spec) != 0 and ((s := format_spec[-1]) in 'cAa') else 'a'
+  match style:
+   case 'c' : return f'Spheric({{:{floatform}}}, {{:{floatform}}}, {{:{floatform}}}, {{:{floatform}}})'.format(self.w, self.x, self.y, self.z)
+   case 'a' : return f'Spheric({{:{floatform}}}, {{:{floatform}}}, {{:{floatform}}})'.format(self.theta, self.phi, self.psi)
+   case _:
+    scale = 1/_math.pi
+    return f'Spheric({{:{floatform}}}π, {{:{floatform}}}π, {{:{floatform}}}π)'.format(self.theta*scale, self.phi*scale, self.psi*scale)
    
-  raise ValueError(f'Invalid format specifier')
+  
  def angles(self) : return self.theta, self.phi, self.psi
  def cartesian(self) : return self.w, self.x, self.y, self.z
  def __add__(self, other):

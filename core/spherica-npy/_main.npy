@@ -1,5 +1,4 @@
 import math as _math;
-import re;
 from copy import copy as _copy;
 
 class Spheric {
@@ -144,21 +143,19 @@ class Spheric {
     := __repr__(self) :=> f'{self}';
 
     := __format__(self, format_spec) {
-        if re.match(r'^(.\d+)?[GgFf]?[cAa]?$', format_spec) {
-            floatform = '.3g' if ((s <- format_spec.rstrip('cAa')) == '') else s;
-            style = s if len(format_spec) != 0 && ((s <- format_spec[-1]) -> 'cAa') else 'a';
-            match style {
-                ? 'c' :=> f'Spheric({{:{floatform}}}, {{:{floatform}}}, {{:{floatform}}}, {{:{floatform}}})'
-                          .format(self.w, self.x, self.y, self.z);
-                ? 'a' :=> f'Spheric({{:{floatform}}}, {{:{floatform}}}, {{:{floatform}}})'
-                          .format(self.theta, self.phi, self.psi);
-                ? _ {
-                    scale = 1/_math.pi;
-                    => f'Spheric({{:{floatform}}}π, {{:{floatform}}}π, {{:{floatform}}}π)'
-                        .format(self.theta*scale, self.phi*scale, self.psi*scale)
-                }
+        floatform = '.3g' if ((s <- format_spec.rstrip('cAa')) == '') else s;
+        style = s if len(format_spec) != 0 && ((s <- format_spec[-1]) -> 'cAa') else 'a';
+        match style {
+            ? 'c' :=> f'Spheric({{:{floatform}}}, {{:{floatform}}}, {{:{floatform}}}, {{:{floatform}}})'
+                      .format(self.w, self.x, self.y, self.z);
+            ? 'a' :=> f'Spheric({{:{floatform}}}, {{:{floatform}}}, {{:{floatform}}})'
+                      .format(self.theta, self.phi, self.psi);
+            ? _ {
+                scale = 1/_math.pi;
+                => f'Spheric({{:{floatform}}}π, {{:{floatform}}}π, {{:{floatform}}}π)'
+                    .format(self.theta*scale, self.phi*scale, self.psi*scale)
             }
-        } raise ValueError(f'Invalid format specifier')
+        }
     }
 
     := angles(self) :=> self.theta, self.phi, self.psi;
