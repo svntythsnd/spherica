@@ -1,4 +1,5 @@
 import math as _math
+import re as _re
 from copy import copy as _copy
 class Spheric:
  def __init__(self, *args: int|float):
@@ -102,14 +103,25 @@ class Spheric:
  def z(self, val): self.__init__(self.w, self.x, self.z, val)
  def __repr__(self) : return f'{self}'
  def __format__(self, format_spec):
-  floatform = '.3g' if ((s := format_spec.rstrip('cAa')) == '') else s
-  style = s if len(format_spec) != 0 and ((s := format_spec[-1]) in 'cAa') else 'a'
+  if not _re.match(r'[^\(\)]*(\(\d+(\D+\S+\D+|[^\d ])\d+\))?$',format_spec): raise ValueError('Invalid format specifier')
+  main_spec = _re.match(r'.*(?=\()',format_spec).group() if (definis := _re.search(r'(?<=\().*(?=\))',format_spec)) else format_spec
+  pad1, delimiter, pad2 = 0, ',', 1
+  if definis:
+   definis = definis.group()
+   pad1 = _re.match(r'\d+',definis).group()
+   pad2 = _re.search(r'\d+$',definis).group() if _re.match(r'\d+\D',definis) else 0
+   delimiter = s.group() if (s := _re.search(r'[^\d ](\S*[^\d ])?',definis)) else ''
+   pad1, pad2 = int(pad1), int(pad2)
+  pad1 *= " "
+  pad2 *= " "
+  floatform = '.3g' if ((s := main_spec.rstrip('cAa')) == '') else s
+  style = s if len(main_spec) != 0 and ((s := main_spec[-1]) in 'cAa') else 'a'
   match style:
-   case 'c' : return f'Spheric({{:{floatform}}}, {{:{floatform}}}, {{:{floatform}}}, {{:{floatform}}})'.format(self.w, self.x, self.y, self.z)
-   case 'a' : return f'Spheric({{:{floatform}}}, {{:{floatform}}}, {{:{floatform}}})'.format(self.theta, self.phi, self.psi)
+   case 'c' : return f'Spheric({{:{floatform}}}{pad1}{delimiter}{pad2}{{:{floatform}}}{pad1}{delimiter}{pad2}{{:{floatform}}}{pad1}{delimiter}{pad2}{{:{floatform}}})'.format(self.w, self.x, self.y, self.z)
+   case 'a' : return f'Spheric({{:{floatform}}}{pad1}{delimiter}{pad2}{{:{floatform}}}{pad1}{delimiter}{pad2}{{:{floatform}}})'.format(self.theta, self.phi, self.psi)
    case _:
     scale = 1/_math.pi
-    return f'Spheric({{:{floatform}}}π, {{:{floatform}}}π, {{:{floatform}}}π)'.format(self.theta*scale, self.phi*scale, self.psi*scale)
+    return f'Spheric({{:{floatform}}}π{pad1}{delimiter}{pad2}{{:{floatform}}}π{pad1}{delimiter}{pad2}{{:{floatform}}}π)'.format(self.theta*scale, self.phi*scale, self.psi*scale)
    
   
  def angles(self) : return self.theta, self.phi, self.psi

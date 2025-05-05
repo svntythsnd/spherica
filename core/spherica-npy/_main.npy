@@ -1,4 +1,5 @@
 import math as _math;
+import re as _re;
 from copy import copy as _copy;
 
 class Spheric {
@@ -143,16 +144,28 @@ class Spheric {
     := __repr__(self) :=> f'{self}';
 
     := __format__(self, format_spec) {
-        floatform = '.3g' if ((s <- format_spec.rstrip('cAa')) == '') else s;
-        style = s if len(format_spec) != 0 && ((s <- format_spec[-1]) -> 'cAa') else 'a';
+        if !_re.match(r'[^\(\)]*(\(\d+(\D+\S+\D+|[^\d ])\d+\))?$',format_spec): raise ValueError('Invalid format specifier');
+        main_spec = _re.match(r'.*(?=\()',format_spec).group() if (definis <- _re.search(r'(?<=\().*(?=\))',format_spec)) else format_spec;
+        pad1, delimiter, pad2 = 0, ',', 1;
+        if definis {
+            definis = definis.group();
+            pad1 = _re.match(r'\d+',definis).group();
+            pad2 = _re.search(r'\d+$',definis).group() if _re.match(r'\d+\D',definis) else 0;
+            delimiter = s.group() if (s <- _re.search(r'[^\d ](\S*[^\d ])?',definis)) else '';
+            pad1, pad2 = int(pad1), int(pad2)
+        }
+        pad1 *= " ";
+        pad2 *= " ";
+        floatform = '.3g' if ((s <- main_spec.rstrip('cAa')) == '') else s;
+        style = s if len(main_spec) != 0 && ((s <- main_spec[-1]) -> 'cAa') else 'a';
         match style {
-            ? 'c' :=> f'Spheric({{:{floatform}}}, {{:{floatform}}}, {{:{floatform}}}, {{:{floatform}}})'
+            ? 'c' :=> f'Spheric({{:{floatform}}}{pad1}{delimiter}{pad2}{{:{floatform}}}{pad1}{delimiter}{pad2}{{:{floatform}}}{pad1}{delimiter}{pad2}{{:{floatform}}})'
                       .format(self.w, self.x, self.y, self.z);
-            ? 'a' :=> f'Spheric({{:{floatform}}}, {{:{floatform}}}, {{:{floatform}}})'
+            ? 'a' :=> f'Spheric({{:{floatform}}}{pad1}{delimiter}{pad2}{{:{floatform}}}{pad1}{delimiter}{pad2}{{:{floatform}}})'
                       .format(self.theta, self.phi, self.psi);
             ? _ {
                 scale = 1/_math.pi;
-                => f'Spheric({{:{floatform}}}π, {{:{floatform}}}π, {{:{floatform}}}π)'
+                => f'Spheric({{:{floatform}}}π{pad1}{delimiter}{pad2}{{:{floatform}}}π{pad1}{delimiter}{pad2}{{:{floatform}}}π)'
                     .format(self.theta*scale, self.phi*scale, self.psi*scale)
             }
         }
