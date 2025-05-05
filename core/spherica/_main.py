@@ -103,17 +103,17 @@ class Spheric:
  def z(self, val): self.__init__(self.w, self.x, self.z, val)
  def __repr__(self) : return f'{self}'
  def __format__(self, format_spec):
-  if not _re.match(r'[^()]*(\(\d+((\D+\S+\D+| *[^\d ] *)\d+)?\))?[^()]*$',format_spec): raise ValueError('Invalid format specifier')
+  if not _re.match(r'[^()]*(\(.*\))?[^()]*$',format_spec): raise ValueError('Invalid format specifier')
   pad1, delimiter, pad2 = 0, ',', 1
   if definis := _re.search(r'(?<=\().*(?=\))',format_spec):
    definis = definis.group()
-   pad1 = _re.match(r'\d+',definis).group()
-   pad2 = _re.search(r'\d+$',definis).group() if _re.match(r'\d+\D',definis) else 0
-   delimiter = s.group() if (s := _re.search(r'[^\d ](\S*[^\d ])?',definis)) else ''
+   pad1 = s.group() if (s := _re.match(r' *\d+',definis)) else 0
+   pad2 = (s.group() if (s := _re.search(r'\d+ *$',definis)) else 0) if _re.match(r'\d*\D',definis) else 0
+   delimiter = definis.strip('0123456789').strip(' ')
    pad1, pad2 = int(pad1), int(pad2)
   pad1 *= " "
   pad2 *= " "
-  floatform = '.3g' if (len(s := _re.findall(r'[^()cAa]*(?=(?:[^)]*\([^(]*\))*[^()]*$)',format_spec)) == 0) else ''.join(s)
+  floatform = '.3g' if (len(s := _re.findall(r'[^()cAa]+(?=(?:[^)]?\([^(]+\))?[^()]*$)',format_spec)) == 0) else ''.join(s)
   if len(s := _re.findall('[cAa]',format_spec)) == 0: style = 'a'
   elif len(s) > 1: raise ValueError('Invalid format specifier')
   else: style = s[0]
