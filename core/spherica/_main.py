@@ -103,18 +103,17 @@ class Spheric:
  def z(self, val): self.__init__(self.w, self.x, self.z, val)
  def __repr__(self) : return f'{self}'
  def __format__(self, format_spec):
-  if re.match(r'^(.\d+)?[GgFf][cAa]$', format_spec):
-   form = format_spec[-2]
-   digits = format_spec[:-2]
-   match format_spec[-1]:
-    case 'c' : return f'Spheric({{:{digits}{form}}}, {{:{digits}{form}}}, {{:{digits}{form}}}, {{:{digits}{form}}})'.format(self.w, self.x, self.y, self.z)
-    case 'a' : return f'Spheric({{:{digits}{form}}}, {{:{digits}{form}}}, {{:{digits}{form}}})'.format(self.theta, self.phi, self.psi)
+  if re.match(r'^(.\d+)?[GgFf]?[cAa]?$', format_spec):
+   floatform = '.3g' if ((s := format_spec.rstrip('cAa')) == '') else s
+   style = s if len(format_spec) != 0 and ((s := format_spec[-1]) in 'cAa') else 'a'
+   match style:
+    case 'c' : return f'Spheric({{:{floatform}}}, {{:{floatform}}}, {{:{floatform}}}, {{:{floatform}}})'.format(self.w, self.x, self.y, self.z)
+    case 'a' : return f'Spheric({{:{floatform}}}, {{:{floatform}}}, {{:{floatform}}})'.format(self.theta, self.phi, self.psi)
     case _:
      scale = 1/_math.pi
-     return f'Spheric({{:{digits}{form}}}π, {{:{digits}{form}}}π, {{:{digits}{form}}}π)'.format(self.theta*scale, self.phi*scale, self.psi*scale)
+     return f'Spheric({{:{floatform}}}π, {{:{floatform}}}π, {{:{floatform}}}π)'.format(self.theta*scale, self.phi*scale, self.psi*scale)
     
    
-  elif format_spec == '' : return f'{self:.3ga}'
   raise ValueError(f'Invalid format specifier')
  def angles(self) : return self.theta, self.phi, self.psi
  def cartesian(self) : return self.w, self.x, self.y, self.z
