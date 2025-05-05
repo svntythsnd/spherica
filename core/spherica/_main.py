@@ -103,10 +103,9 @@ class Spheric:
  def z(self, val): self.__init__(self.w, self.x, self.z, val)
  def __repr__(self) : return f'{self}'
  def __format__(self, format_spec):
-  if not _re.match(r'[^\(\)]*(\(\d+(\D+\S+\D+|[^\d ])\d+\))?$',format_spec): raise ValueError('Invalid format specifier')
-  main_spec = _re.match(r'.*(?=\()',format_spec).group() if (definis := _re.search(r'(?<=\().*(?=\))',format_spec)) else format_spec
+  if not _re.match(r'[^()]*(\(\d+((\D+\S+\D+| *[^\d ] *)\d+)?\))?[^()]*$',format_spec): raise ValueError('Invalid format specifier')
   pad1, delimiter, pad2 = 0, ',', 1
-  if definis:
+  if definis := _re.search(r'(?<=\().*(?=\))',format_spec):
    definis = definis.group()
    pad1 = _re.match(r'\d+',definis).group()
    pad2 = _re.search(r'\d+$',definis).group() if _re.match(r'\d+\D',definis) else 0
@@ -114,8 +113,10 @@ class Spheric:
    pad1, pad2 = int(pad1), int(pad2)
   pad1 *= " "
   pad2 *= " "
-  floatform = '.3g' if ((s := main_spec.rstrip('cAa')) == '') else s
-  style = s if len(main_spec) != 0 and ((s := main_spec[-1]) in 'cAa') else 'a'
+  floatform = '.3g' if (len(s := _re.findall(r'[^()cAa]*(?=(?:[^)]*\([^(]*\))*[^()]*$)',format_spec)) == 0) else ''.join(s)
+  if len(s := _re.findall('[cAa]',format_spec)) == 0: style = 'a'
+  elif len(s) > 1: raise ValueError('Invalid format specifier')
+  else: style = s[0]
   match style:
    case 'c' : return f'Spheric({{:{floatform}}}{pad1}{delimiter}{pad2}{{:{floatform}}}{pad1}{delimiter}{pad2}{{:{floatform}}}{pad1}{delimiter}{pad2}{{:{floatform}}})'.format(self.w, self.x, self.y, self.z)
    case 'a' : return f'Spheric({{:{floatform}}}{pad1}{delimiter}{pad2}{{:{floatform}}}{pad1}{delimiter}{pad2}{{:{floatform}}})'.format(self.theta, self.phi, self.psi)
