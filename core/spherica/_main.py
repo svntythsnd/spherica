@@ -108,7 +108,7 @@ class Spheric:
   if definis := _re.search(r'(?<=\().*(?=\))',format_spec):
    definis = definis.group()
    pad1 = s.group() if (s := _re.match(r' *\d+',definis)) else 0
-   pad2 = (s.group() if (s := _re.search(r'\d+ *$',definis)) else 0) if _re.match(r'\d*\D',definis) else 0
+   pad2 = s.group() if (s := _re.search(r'\d+ *$',definis)) and _re.match(r'\d*\D',definis) else 0
    delimiter = definis.strip('0123456789').strip(' ')
    pad1, pad2 = int(pad1), int(pad2)
   pad1 *= " "
