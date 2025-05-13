@@ -18,7 +18,8 @@ class Spheric {
                 }
 
                 self.__t = args[0];
-                t_rolled = (self.__t/_math.pi % 2 >= 1);
+                self.__t %= 2*_math.pi;
+                t_rolled = self.__t >= _math.pi;
                 self.__t %= _math.pi;
                 t_invariant = (self.__t == 0);
                 if t_rolled: self.__t = _math.pi-self.__t;
@@ -30,7 +31,8 @@ class Spheric {
 
                 self.__p = args[1];
                 if t_rolled: self.__p += _math.pi;
-                p_rolled = (self.__p/_math.pi % 2 >= 1);
+                self.__p %= 2*_math.pi;
+                p_rolled = self.__p >= _math.pi;
                 self.__p %= _math.pi;
                 p_invariant = (self.__p == 0);
                 if p_rolled: self.__p = _math.pi-self.__p;

@@ -14,7 +14,8 @@ class Spheric:
      if not isinstance(i, int|float): raise TypeError(f'Angles must be numerical, but got {["θ","φ","ψ"][n]} of type \'{type(i).__name__}\'')
      if _math.isnan(i) or _math.isinf(i): raise ValueError(f'Angles cannot be ±inf or NaN, but got {["θ","φ","ψ"][n]} = {i}')
     self.__t = args[0]
-    t_rolled = (self.__t/_math.pi % 2 >= 1)
+    self.__t %= 2*_math.pi
+    t_rolled = self.__t >= _math.pi
     self.__t %= _math.pi
     t_invariant = (self.__t == 0)
     if t_rolled: self.__t = _math.pi-self.__t
@@ -24,7 +25,8 @@ class Spheric:
      return 
     self.__p = args[1]
     if t_rolled: self.__p += _math.pi
-    p_rolled = (self.__p/_math.pi % 2 >= 1)
+    self.__p %= 2*_math.pi
+    p_rolled = self.__p >= _math.pi
     self.__p %= _math.pi
     p_invariant = (self.__p == 0)
     if p_rolled: self.__p = _math.pi-self.__p
