@@ -141,7 +141,7 @@ class Spheric {
     }
 
     @z.setter;
-    := z(self, val): self.__init__(self.w, self.x, self.z, val);
+    := z(self, val): self.__init__(self.w, self.x, self.y, val);
 
     := __repr__(self) :=> f'{self}';
 

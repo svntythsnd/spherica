@@ -102,7 +102,7 @@ class Spheric:
   if self.__z is None: self.__z = _math.sin(self.__t)*_math.sin(self.__p)*_math.sin(self.__s)
   return self.__z
  @z.setter
- def z(self, val): self.__init__(self.w, self.x, self.z, val)
+ def z(self, val): self.__init__(self.w, self.x, self.y, val)
  def __repr__(self) : return f'{self}'
  def __format__(self, format_spec):
   if not _re.match(r'[^()]*(\(.*\))?[^()]*$',format_spec): raise ValueError('Invalid format specifier')
